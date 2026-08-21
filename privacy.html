@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0B0B0F" />
+<title>Animus — privacy</title>
+<meta name="description" content="What Animus collects, who it passes through, and how to get rid of it." />
+<link rel="canonical" href="https://adhokshajwategaonkar.github.io/animus-site/privacy.html" />
+<meta name="robots" content="index,follow" />
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230B0B0F'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23C6FF3D'/%3E%3C/svg%3E" />
+
+<link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
+
+<style>
+/* Tokens mirror site/index.html, which mirrors web/tailwind.config.js.
+   No build step here either — if a token changes there, change it here. */
+:root{
+  --base:#0B0B0F; --elevated:#16161C;
+  --stroke:rgba(255,255,255,.08);
+  --ink:#F5F5F7; --muted:#A0A0AB; --faint:#6B6B76;
+  --accent:#C6FF3D;
+  --gutter:clamp(20px,5vw,40px);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--base); color:var(--ink);
+  font-family:Satoshi,system-ui,-apple-system,sans-serif;
+  font-size:17px; line-height:1.6; -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--accent);color:#0B0B0F}
+a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(198,255,61,.3)}
+a:hover{border-bottom-color:var(--accent)}
+h1,h2{font-family:"Clash Display",system-ui,sans-serif;font-weight:700;letter-spacing:-.02em;line-height:1.05}
+.wrap{max-width:66ch;margin:0 auto;padding:0 var(--gutter)}
+header{padding:clamp(56px,10vw,110px) 0 0}
+.mark{display:inline-flex;align-items:center;gap:9px;font-weight:700;color:var(--ink);border:0}
+.mark i{width:11px;height:11px;border-radius:50%;background:var(--accent);display:block}
+.label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--faint)}
+h1{font-size:clamp(34px,7vw,52px);margin:26px 0 14px}
+.lede{color:var(--muted);font-size:18px;max-width:52ch}
+main{padding:clamp(40px,7vw,72px) 0 0}
+h2{font-size:22px;margin:44px 0 12px}
+p{margin:0 0 14px;color:var(--muted)}
+p strong,li strong{color:var(--ink);font-weight:500}
+ul{margin:0 0 14px;padding-left:20px;color:var(--muted)}
+li{margin-bottom:8px}
+.card{
+  background:var(--elevated);border:1px solid var(--stroke);
+  border-radius:16px;padding:22px 24px;margin:22px 0;
+}
+.card p:last-child{margin-bottom:0}
+.fine{font-size:13px;color:var(--faint);line-height:1.55}
+footer{margin-top:64px;padding:28px 0 64px;border-top:1px solid var(--stroke)}
+footer p{margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="mark" href="./"><i></i>animus</a>
+    <p class="label" style="margin-top:32px">privacy</p>
+    <h1>what animus keeps, and how to get rid of it.</h1>
+    <p class="lede">
+      Animus is a small, free beta run by one person. This page describes what it actually
+      does with your data, in plain terms, rather than covering every hypothetical.
+    </p>
+    <p class="fine" style="margin-top:18px">Last updated 21 August 2026.</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <h2>What it collects</h2>
+  <ul>
+    <li><strong>Your email address and a password</strong>, to have an account at all. The password is stored hashed, never in readable form.</li>
+    <li><strong>A display name</strong>, if you give one. Optional.</li>
+    <li><strong>Your phone number</strong>, once you link WhatsApp. This is what connects an incoming message to your account — it is the account key, not a marketing list.</li>
+    <li><strong>The things you capture.</strong> The text of messages you send Animus on WhatsApp, or type into the app. This is the product; there is no version of it that does not store what you sent.</li>
+    <li><strong>What the parse produced</strong> — a title, a type, an urgency, sometimes a date — derived from your capture.</li>
+    <li><strong>Public page details for links you send</strong>, such as the title and description, fetched from the page itself so the item reads as something rather than a bare URL.</li>
+    <li><strong>Settings</strong>: timezone, whether nudges are on, quiet hours, notification preferences.</li>
+    <li><strong>A web push subscription</strong>, only if you turn notifications on.</li>
+    <li><strong>Usage counts</strong>: how many captures, and what each one cost to process. Used to keep the beta inside a fixed budget.</li>
+  </ul>
+
+  <div class="card">
+    <p><strong>No advertising, no trackers, no sale of data.</strong> There is no third-party
+    analytics or advertising code in the site or the app, and your captures are not used
+    to train anyone's models beyond the single processing call described below.</p>
+  </div>
+
+  <h2>Who it passes through</h2>
+  <p>Animus is a small app standing on other people's infrastructure. Your data touches these:</p>
+  <ul>
+    <li><strong>Meta (WhatsApp Business Platform)</strong> — every WhatsApp message to or from Animus travels through Meta, under their terms and privacy policy.</li>
+    <li><strong>A language model provider</strong> — the text of a capture is sent, once, to be turned into a structured item. Currently Google (Gemini) or Anthropic (Claude), depending on configuration.</li>
+    <li><strong>Supabase</strong> — the database where your account and items live.</li>
+    <li><strong>Render</strong> — where the application runs.</li>
+  </ul>
+  <p>Those providers process data on servers that may be outside your country.</p>
+
+  <h2>How long it's kept</h2>
+  <p>
+    Items stay until you delete them or ask for the account to be removed. Archived and
+    dropped items remain until then too — the point of the archive is that it is still there.
+  </p>
+
+  <h2>Deleting it</h2>
+  <div class="card">
+    <p>
+      Email <a href="mailto:adhokshaj.pande@gmail.com?subject=animus%20—%20delete%20my%20data">adhokshaj.pande@gmail.com</a>
+      from the address on the account and ask. Everything tied to it — account, phone number,
+      items, usage records — is deleted, and you'll get confirmation when it's done.
+    </p>
+    <p class="fine" style="margin-top:12px">
+      Deleting your Animus account does not delete the chat history sitting in your own
+      WhatsApp app, which is on your phone and yours to clear.
+    </p>
+  </div>
+
+  <h2>Children</h2>
+  <p>Animus isn't intended for anyone under 13, and accounts aren't knowingly created for them.</p>
+
+  <h2>Security, honestly stated</h2>
+  <p>
+    Traffic is encrypted in transit, passwords are hashed, and access to the database is
+    restricted to the application. It is also a beta built by one person, so it makes no
+    claim to enterprise-grade security. Don't put anything in it that would seriously hurt
+    you to lose or expose.
+  </p>
+
+  <h2>Changes</h2>
+  <p>
+    If this changes materially, the date above changes and anyone with an account gets told.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    <a href="mailto:adhokshaj.pande@gmail.com?subject=animus%20—%20privacy">adhokshaj.pande@gmail.com</a>
+  </p>
+
+  <footer>
+    <p class="fine"><a href="./" style="color:var(--muted);border-bottom-color:rgba(255,255,255,.2)">← back to animus</a></p>
+    <p class="fine">animus is a place to put things, not a medical device. it doesn't diagnose or treat anything, and it isn't a substitute for care.</p>
+  </footer>
+
+</main>
+
+</body>
+</html>
