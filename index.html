@@ -8,7 +8,7 @@
 <meta property="og:type" content="website" />
 <meta property="og:title" content="animus · send a mess, get it back sorted" />
 <meta property="og:description" content="Message it on WhatsApp the moment something comes to mind. It sorts each thing and reminds you one thing at a time." />
-<meta property="og:image" content="https://adhokshajwategaonkar.github.io/animus-site/og.png" />
+<meta property="og:image" content="https://adhokshajwategaonkar.github.io/animus-site/og.png?v=2" />
 <meta name="twitter:card" content="summary_large_image" />
 
 <!-- Theme resolved BEFORE first paint. A deferred script setting this on mount
@@ -24,7 +24,8 @@ r.setAttribute('data-theme',p==='system'?m:p);}catch(e){}})();
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="preconnect" href="https://i.ytimg.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230B0B0F'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23C6FF3D'/%3E%3C/svg%3E" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230B0B0F'/%3E%3Ccircle cx='16' cy='16' r='9.8' fill='none' stroke='%23C6FF3D' stroke-width='2.4'/%3E%3Ccircle cx='16' cy='16' r='3.7' fill='%23C6FF3D'/%3E%3C/svg%3E" />
+<link rel="apple-touch-icon" href="./animus-icon-1024.png" />
 
 <style>
 /* ===================================================================== tokens
@@ -111,8 +112,8 @@ header.stuck{background:var(--nav-s);border-bottom-color:var(--hair)}
 header .wrap{display:flex;align-items:center;gap:10px;height:60px}
 .mark{display:flex;align-items:center;gap:9px;font-family:Geist,system-ui,sans-serif;
   font-weight:600;font-size:18px;letter-spacing:-.02em;margin-right:auto}
-.mark i{width:9px;height:9px;border-radius:99px;background:var(--accent);
-  box-shadow:0 0 12px rgba(198,255,61,.55)}
+.mark svg{width:20px;height:20px;flex:none;color:var(--accent-ink);
+  filter:drop-shadow(0 0 8px rgba(198,255,61,.35))}
 /* One button, three states: follow the system, force light, force dark.
    A cycling glyph is mystery meat on its own, so it carries a title and an
    aria-label naming the state it is IN, and the icon is the state itself
@@ -666,7 +667,7 @@ footer{border-top:1px solid var(--hair);padding:44px 0 56px}
 
 <header id="nav">
   <div class="wrap">
-    <a class="mark" href="#top"><i></i>animus</a>
+    <a class="mark" href="#top"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.8" fill="currentColor"/></svg>animus</a>
     <button class="thbtn" id="th" type="button"></button>
     <button class="snd" id="snd" aria-pressed="false"><i></i><span id="sndl">sound</span></button>
     <a class="ghost nav-hide app-link" href="#">open animus</a>
@@ -917,7 +918,7 @@ footer{border-top:1px solid var(--hair);padding:44px 0 56px}
 <footer>
   <div class="wrap foot">
     <div>
-      <a class="mark" href="#top"><i></i>animus</a>
+      <a class="mark" href="#top"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.8" fill="currentColor"/></svg>animus</a>
       <p>questions: <a class="mail" href="mailto:adhokshaj.pande@gmail.com?subject=animus">adhokshaj.pande@gmail.com</a></p>
     </div>
     <div class="fine">
