@@ -23,7 +23,7 @@ r.setAttribute('data-theme',p==='system'?m:p);}catch(e){}})();
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="preconnect" href="https://i.ytimg.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230B0B0F'/%3E%3Ccircle cx='16' cy='16' r='9.8' fill='none' stroke='%23C6FF3D' stroke-width='2.4'/%3E%3Ccircle cx='16' cy='16' r='3.7' fill='%23C6FF3D'/%3E%3C/svg%3E" />
 <link rel="apple-touch-icon" href="./animus-icon-1024.png" />
 
@@ -150,19 +150,41 @@ header .wrap{display:flex;align-items:center;gap:10px;height:60px}
 .ghost:active{transform:scale(.97)}
 
 /* --------------------------------------------------------------------- hero */
-.hero{padding:118px 0 0}
-.hero .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:13.5px;color:var(--faint);margin-bottom:22px}
-.hero .eyebrow i{width:6px;height:6px;border-radius:99px;background:var(--accent)}
-.hero h1{font-size:clamp(42px,6.6vw,86px);line-height:.94;letter-spacing:-.042em;max-width:15ch}
-.hero h1 .dim{color:var(--faint)}
-.hero .say{margin-top:20px;max-width:52ch;color:var(--muted);font-size:clamp(16px,1.8vw,18.5px)}
-.hero .cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:28px}
+/* The first screen is a statement and a picture of it: a centred headline, and
+   under it the flow graphic, a mess going into the ring and sorted cards coming
+   out. The working demo is the next section, one scroll down. */
+.hero{padding:clamp(88px,12vh,112px) 0 0;position:relative;text-align:center;overflow-x:clip}
+.hero .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:12px;color:var(--muted);margin-bottom:26px;
+  padding:5px 12px 5px 10px;border:1px solid var(--hair);border-radius:999px;background:var(--hover);
+  font-family:"Geist Mono",ui-monospace,monospace;letter-spacing:.01em}
+.hero .eyebrow i{width:5px;height:5px;border-radius:99px;background:var(--accent)}
+.hero h1{font-size:clamp(38px,min(6.4vw,9.5vh),82px);line-height:1;letter-spacing:-.045em;font-weight:600;margin:0 auto;text-wrap:balance}
+.hero h1 .dim{background:linear-gradient(180deg,var(--ink) 0%,var(--muted) 85%);-webkit-background-clip:text;
+  background-clip:text;color:transparent}
+.hero .say{margin:22px auto 0;max-width:46ch;color:var(--muted);font-size:clamp(15.5px,1.5vw,17px);line-height:1.6;text-wrap:pretty}
+.hero .cta{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin-top:30px}
+.hero .cta .go,.hero .cta .ghost{height:42px;padding:0 20px;font-size:14px;border-radius:10px}
+.hero .cta .go{font-weight:600;box-shadow:0 0 0 1px rgba(198,255,61,.4),0 8px 24px -12px rgba(198,255,61,.5)}
+.hero .cta .ghost{color:var(--ink);background:var(--hover)}
+.flow{position:relative;height:clamp(420px,42vw,540px);margin-top:clamp(0px,1.5vw,18px)}
+.flow::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(rgba(255,255,255,.075) .8px,transparent 1px);background-size:20px 20px;
+  -webkit-mask-image:radial-gradient(55% 65% at 46% 50%,#000 25%,transparent 78%);
+          mask-image:radial-gradient(55% 65% at 46% 50%,#000 25%,transparent 78%)}
+:root[data-theme='light'] .flow::before{background-image:radial-gradient(rgba(20,20,26,.13) 1px,transparent 1.3px)}
+.flow canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.demoband{padding:clamp(40px,6vw,72px) 0 clamp(60px,9vh,110px)}
+.demoband h2{font-size:clamp(28px,4.2vw,48px);text-align:center;margin:0 auto}
+.demoband .say{margin:14px auto 0;text-align:center;color:var(--muted);max-width:46ch}
+.demoband .stage{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 40px 120px -40px rgba(124,92,252,.35),var(--stage)}
+.demoband .stage-note{margin-left:auto;margin-right:auto;text-align:center}
+@media(max-width:699px){.flow{height:600px}}
 
 /* ======================================================== the stage
    The artifact. Two real surfaces inside ONE object, divided by a hairline:
    the chat you send from, and the pile it lands in. Not two screenshots side
    by side — one machine with an in and an out. */
-.stage{margin-top:clamp(34px,5vw,56px);border:1px solid var(--hair);border-radius:22px;
+.stage{margin-top:clamp(28px,4vw,44px);border:1px solid var(--hair);border-radius:22px;
   background:var(--hair);box-shadow:var(--stage);overflow:hidden;
   /* clip, not just hidden: a hidden box can still be scrolled by script or focus,
      and that slides the parked sheet up into view below the pile */
@@ -642,10 +664,15 @@ footer{border-top:1px solid var(--hair);padding:44px 0 56px}
 }
 
 /* -------------------------------------------------------------- responsive */
-@media(max-width:1060px){
+@media(max-width:900px){
   .stage{grid-template-columns:minmax(0,1fr)}
   .thread{max-height:330px}
   .pile{height:470px}
+}
+@media(min-width:901px) and (max-width:1060px){
+  .stage{grid-template-columns:minmax(0,360px) minmax(0,1fr)}
+}
+@media(max-width:1060px){
   .ret{grid-template-columns:1fr}
   .phone{justify-self:center;margin:0 auto}
   .five .r{grid-template-columns:1fr;gap:10px}
@@ -684,16 +711,27 @@ footer{border-top:1px solid var(--hair);padding:44px 0 56px}
     <p class="eyebrow rise"><i></i>built for ADHD brains · free while it's small</p>
     <h1 class="rise" style="--i:1">send a mess.<br /><span class="dim">get it back sorted.</span></h1>
     <p class="say rise" style="--i:2">
-      message animus on WhatsApp the moment something comes to mind: a link, a task, half a
-      thought, or several at once. it splits them up and sorts each one. you never organise anything.
+      text animus on WhatsApp whenever something comes to mind. it splits what you send into
+      tasks, reminders, links and ideas, and brings each one back when it matters.
     </p>
     <div class="cta rise" style="--i:3">
       <a class="go app-link" href="#">open animus</a>
-      <span style="font-size:13.5px;color:var(--faint)">↓ or play with a demo first</span>
+            <a class="ghost" href="#try">see it sort a message <span aria-hidden="true">↓</span></a>
     </div>
+  </div>
+  <!-- the mess goes in, sorted things come out. Full width, so the mess arrives
+       from the edge of the screen. Decoration: the demo below says the same in words. -->
+  <div class="flow rise" style="--i:4" aria-hidden="true"><canvas id="flow"></canvas></div>
+</section>
+
+<!-- =================================================================== try it -->
+<section class="demoband" id="try">
+  <div class="wrap">
+    <h2 class="rise">see it sort a message.</h2>
+    <p class="say rise" style="--i:1">type anything the way it comes out, or pick an example.</p>
 
     <!-- ============================================================ the stage -->
-    <div class="stage rise" style="--i:4">
+    <div class="stage rise" style="--i:4" id="demo">
       <!-- in -->
       <div class="pane">
         <div class="pane-top">
@@ -1188,12 +1226,24 @@ EXAMPLES.forEach(function (ex) {
   b.addEventListener('click', function () { typeIn(ex); });
   $('#tries').appendChild(b);
 });
+/* The first example plays by itself once the demo is on screen, so nobody meets
+   an empty pile. Only once, and never over something the visitor started. */
+var autoPlayed = false;
+function autoPlay() {
+  if (autoPlayed || used || busy || items.length) return;
+  autoPlayed = true;
+  setTimeout(function () { if (!used && !busy && !items.length) typeIn(EXAMPLES[1], true); }, 450);
+}
+if (io) new IntersectionObserver(function (es, ob) {
+  es.forEach(function (e) { if (e.isIntersecting) { autoPlay(); ob.disconnect(); } });
+}, { threshold: .12 }).observe($('#demo'));
+else autoPlay();
 /* the examples type themselves in — watching the mess arrive is half of it */
-function typeIn(ex) {
+function typeIn(ex, auto) {
   if (busy) return;
   if (typingTimer) { clearInterval(typingTimer); typingTimer = null; }
   closeSheet();
-  msg.value = ''; msg.focus(); autosize();
+  msg.value = ''; if (!auto) msg.focus({ preventScroll: true }); autosize();
   if (REDUCE) { msg.value = ex.x; autosize(); send(ex); return; }
   var i = 0;
   typingTimer = setInterval(function () {
@@ -2009,6 +2059,241 @@ if (io) {
    ping fires itself: a thing you have to guess at proves nothing.
    Lime means you pushed this away more than once, and nothing else. */
 var SKY = /*SKY*/{"s":[["pay the electricity bill","reminder",1,40,null,"done",0],["fix the dripping tap","task",1,34,null,"done",0],["cancel the gym membership","task",3,30,"you'd pushed this back four times.","done",0],["descale the kettle","task",1,21,null,"done",0],["book the boiler service","reminder",2,16,"it waited 19 days.","done",0],["how to fold a fitted sheet","link",0,12,null,"done",0],["paint the hallway","idea",0,3,null,"snoozed",0],["reply to the landlord","task",1,44,null,"done",0],["send the invoice","task",3,27,"you'd pushed this back three times.","done",0],["ask about the raise","task",2,19,"it waited 12 days.","done",0],["update the portfolio","goal",1,15,null,"pending",1],["a good talk on giving feedback","link",0,9,null,"done",0],["a monthly note to clients","idea",0,4,null,"pending",0],["call mum back","reminder",1,38,null,"done",0],["that video on sleep debt","link",0,36,null,"done",0],["learn to make dal","goal",1,33,null,"done",0],["return the library book","task",2,29,"it waited 16 days.","done",0],["a long read on octopuses","link",0,26,null,"pending",0],["renew the passport","task",3,24,"you'd pushed this back twice.","done",0],["a birthday idea for dad","idea",0,22,null,"done",0],["book the dentist","reminder",1,18,null,"done",0],["a podcast for the commute","link",0,14,null,"done",0],["start running again","goal",1,11,null,"pending",0],["order the vitamin d","task",1,8,null,"done",0],["find the form 16","task",1,6,null,"pending",1],["a shelf for the hallway","idea",0,5,null,"pending",0],["text arjun about sunday","reminder",1,2,null,"done",0],["that thread on saving","link",0,1,null,"pending",0],["a name for the side project","idea",0,17,null,"done",0],["read twelve books this year","goal",1,31,null,"done",0],"done","done","done","done","done","done","link","link","link","link","idea","idea","idea","idea","goal","goal"],"wide":{"s":[[65.8,0.2,2.3,2,1,0],[65.7,9.7,2.3,2,1,0],[50.3,-8.1,3.5,2,-1,0],[59.3,16.6,2.3,2,1,0],[59.6,-6.9,2.8,2,1,0],[40.3,3,2,2,-1,3],[44.5,14.5,2,2,-1,2],[118.6,-10.8,2.3,4,1,0],[100.2,-19.6,3.5,4,-1,0],[111.4,-19.5,2.8,4,1,0],[113.3,3.3,2.3,4,1,1],[92.6,-6.5,2,4,-1,3],[100.1,4.3,2,4,-1,2],[-2.4,-5.8,2.3,0,-1,0],[-57.1,-5.9,2,1,-1,3],[22.1,-53,2.3,5,-1,1],[-6.2,-0.8,2.8,0,-1,0],[-55,-11.9,2,1,-1,3],[-3.8,5,3.5,0,-1,0],[-95.6,15.1,2,3,1,2],[3.8,-5,2.3,0,1,0],[-38.5,-9.5,2,1,1,3],[28.7,-56.2,2.3,5,1,1],[6.2,0.8,2.3,0,1,0],[2.4,5.8,2.3,0,1,0],[-101.9,15.9,2,3,-1,2],[-6.9,10.5,2.3,0,-1,0],[-63.3,-4.8,2,1,-1,3],[-89.4,2.5,2,3,1,2],[33.9,-50.9,2.3,5,1,1],[-12.5,1.2,2.3,0,-1,0],[-8.7,-9.1,2.3,0,-1,0],[1.7,-12.5,2.3,0,1,0],[10.8,-6.5,2.3,0,1,0],[11.8,4.4,2.3,0,1,0],[3.9,12,2.3,0,1,0],[-48.8,-13.1,2.3,1,1,3],[-44.7,-8.3,2.3,1,1,3],[-46.8,-2.3,2.3,1,1,3],[-53,-1.2,2.3,1,-1,3],[-105.7,10.9,2.3,3,-1,2],[-103.2,5.1,2.3,3,-1,2],[-97,4.3,2.3,3,1,2],[-93.2,9.3,2.3,3,1,2],[30.4,-44.3,2.3,5,1,1],[23.1,-45.6,2.3,5,-1,1]],"br":[[59.9,2.4,"tasks",2],[48.8,9.9,"ideas",2],[46.6,3.8,"links",2],[108.7,-13.8,"tasks",4],[109.7,-1.9,"goals",4],[102.8,-1.4,"ideas",4],[98.9,-7,"links",4]],"c":[["tasks",0,0,18],["links",-50.9,-7.1,18],["home",53.4,4.8,18.6],["ideas",-99.4,10.1,18],["work",105.8,-7.6,18.6],["goals",27.6,-50,11.7]],"l":[[0,0,-3.8,5,0,0],[0,0,-6.2,-0.8,0,0],[0,0,-2.4,-5.8,0,0],[0,0,3.8,-5,0,0],[0,0,6.2,0.8,0,0],[0,0,2.4,5.8,0,0],[-3.8,5,-6.9,10.5,1,0],[-6.2,-0.8,-12.5,1.2,1,0],[-2.4,-5.8,-8.7,-9.1,1,0],[3.8,-5,1.7,-12.5,1,0],[3.8,-5,10.8,-6.5,1,0],[6.2,0.8,11.8,4.4,1,0],[2.4,5.8,3.9,12,1,0],[-50.9,-7.1,-48.8,-13.1,0,1],[-50.9,-7.1,-44.7,-8.3,0,1],[-50.9,-7.1,-46.8,-2.3,0,1],[-50.9,-7.1,-53,-1.2,0,1],[-50.9,-7.1,-57.1,-5.9,0,1],[-50.9,-7.1,-55,-11.9,0,1],[-44.7,-8.3,-38.5,-9.5,1,1],[-57.1,-5.9,-63.3,-4.8,1,1],[53.4,4.8,59.9,2.4,0,2],[59.9,2.4,50.3,-8.1,1,2],[59.9,2.4,59.6,-6.9,1,2],[59.9,2.4,65.8,0.2,1,2],[59.9,2.4,65.7,9.7,1,2],[59.9,2.4,59.3,16.6,1,2],[53.4,4.8,48.8,9.9,0,2],[48.8,9.9,44.5,14.5,1,2],[53.4,4.8,46.6,3.8,0,2],[46.6,3.8,40.3,3,1,2],[-99.4,10.1,-105.7,10.9,0,3],[-99.4,10.1,-103.2,5.1,0,3],[-99.4,10.1,-97,4.3,0,3],[-99.4,10.1,-93.2,9.3,0,3],[-99.4,10.1,-95.6,15.1,0,3],[-99.4,10.1,-101.9,15.9,0,3],[-93.2,9.3,-89.4,2.5,1,3],[105.8,-7.6,108.7,-13.8,0,4],[108.7,-13.8,100.2,-19.6,1,4],[108.7,-13.8,111.4,-19.5,1,4],[108.7,-13.8,118.6,-10.8,1,4],[105.8,-7.6,109.7,-1.9,0,4],[109.7,-1.9,113.3,3.3,1,4],[105.8,-7.6,102.8,-1.4,0,4],[102.8,-1.4,100.1,4.3,1,4],[105.8,-7.6,98.9,-7,0,4],[98.9,-7,92.6,-6.5,1,4],[27.6,-50,22.1,-53,0,5],[27.6,-50,28.7,-56.2,0,5],[27.6,-50,33.9,-50.9,0,5],[27.6,-50,30.4,-44.3,0,5],[27.6,-50,23.1,-45.6,0,5]],"b":[-117.4,-61.7,124.4,28.1]},"tall":{"s":[[29.6,48.3,2.3,2,1,0],[29.4,57.7,2.3,2,1,0],[14,40,3.5,2,-1,0],[23,64.7,2.3,2,1,0],[23.4,41.2,2.8,2,1,0],[4.1,51.1,2,2,-1,3],[8.3,62.6,2,2,-1,2],[-30.9,30.3,2.3,4,1,0],[-49.2,21.6,3.5,4,-1,0],[-38,21.6,2.8,4,1,0],[-36.2,44.4,2.3,4,1,1],[-56.8,34.6,2,4,-1,3],[-49.3,45.5,2,4,-1,2],[-2.4,-5.8,2.3,0,-1,0],[-19.9,-52.1,2,1,-1,3],[-60.2,-18.3,2.3,5,-1,1],[-6.2,-0.8,2.8,0,-1,0],[-17.8,-58,2,1,-1,3],[-3.8,5,3.5,0,-1,0],[52,-10.1,2,3,1,2],[3.8,-5,2.3,0,1,0],[-1.3,-55.6,2,1,1,3],[-53.6,-21.5,2.3,5,1,1],[6.2,0.8,2.3,0,1,0],[2.4,5.8,2.3,0,1,0],[45.8,-9.3,2,3,-1,2],[-6.9,10.5,2.3,0,-1,0],[-26.1,-50.9,2,1,-1,3],[58.3,-22.7,2,3,1,2],[-48.4,-16.2,2.3,5,1,1],[-12.5,1.2,2.3,0,-1,0],[-8.7,-9.1,2.3,0,-1,0],[1.7,-12.5,2.3,0,1,0],[10.8,-6.5,2.3,0,1,0],[11.8,4.4,2.3,0,1,0],[3.9,12,2.3,0,1,0],[-11.6,-59.2,2.3,1,1,3],[-7.5,-54.4,2.3,1,1,3],[-9.6,-48.5,2.3,1,1,3],[-15.8,-47.3,2.3,1,-1,3],[42,-14.3,2.3,3,-1,2],[44.4,-20.1,2.3,3,-1,2],[50.7,-20.9,2.3,3,1,2],[54.5,-15.9,2.3,3,1,2],[-51.9,-9.7,2.3,5,1,1],[-59.2,-11,2.3,5,-1,1]],"br":[[23.7,50.5,"tasks",2],[12.5,57.9,"ideas",2],[10.3,51.9,"links",2],[-40.7,27.3,"tasks",4],[-39.7,39.2,"goals",4],[-46.6,39.8,"ideas",4],[-50.5,34.1,"links",4]],"c":[["tasks",0,0,18],["links",-13.7,-53.3,18],["home",17.2,52.8,18.6],["ideas",48.2,-15.1,18],["work",-43.7,33.6,18.6],["goals",-54.6,-15.3,11.7]],"l":[[0,0,-3.8,5,0,0],[0,0,-6.2,-0.8,0,0],[0,0,-2.4,-5.8,0,0],[0,0,3.8,-5,0,0],[0,0,6.2,0.8,0,0],[0,0,2.4,5.8,0,0],[-3.8,5,-6.9,10.5,1,0],[-6.2,-0.8,-12.5,1.2,1,0],[-2.4,-5.8,-8.7,-9.1,1,0],[3.8,-5,1.7,-12.5,1,0],[3.8,-5,10.8,-6.5,1,0],[6.2,0.8,11.8,4.4,1,0],[2.4,5.8,3.9,12,1,0],[-13.7,-53.3,-11.6,-59.2,0,1],[-13.7,-53.3,-7.5,-54.4,0,1],[-13.7,-53.3,-9.6,-48.5,0,1],[-13.7,-53.3,-15.8,-47.3,0,1],[-13.7,-53.3,-19.9,-52.1,0,1],[-13.7,-53.3,-17.8,-58,0,1],[-7.5,-54.4,-1.3,-55.6,1,1],[-19.9,-52.1,-26.1,-50.9,1,1],[17.2,52.8,23.7,50.5,0,2],[23.7,50.5,14,40,1,2],[23.7,50.5,23.4,41.2,1,2],[23.7,50.5,29.6,48.3,1,2],[23.7,50.5,29.4,57.7,1,2],[23.7,50.5,23,64.7,1,2],[17.2,52.8,12.5,57.9,0,2],[12.5,57.9,8.3,62.6,1,2],[17.2,52.8,10.3,51.9,0,2],[10.3,51.9,4.1,51.1,1,2],[48.2,-15.1,42,-14.3,0,3],[48.2,-15.1,44.4,-20.1,0,3],[48.2,-15.1,50.7,-20.9,0,3],[48.2,-15.1,54.5,-15.9,0,3],[48.2,-15.1,52,-10.1,0,3],[48.2,-15.1,45.8,-9.3,0,3],[54.5,-15.9,58.3,-22.7,1,3],[-43.7,33.6,-40.7,27.3,0,4],[-40.7,27.3,-49.2,21.6,1,4],[-40.7,27.3,-38,21.6,1,4],[-40.7,27.3,-30.9,30.3,1,4],[-43.7,33.6,-39.7,39.2,0,4],[-39.7,39.2,-36.2,44.4,1,4],[-43.7,33.6,-46.6,39.8,0,4],[-46.6,39.8,-49.3,45.5,1,4],[-43.7,33.6,-50.5,34.1,0,4],[-50.5,34.1,-56.8,34.6,1,4],[-54.6,-15.3,-60.2,-18.3,0,5],[-54.6,-15.3,-53.6,-21.5,0,5],[-54.6,-15.3,-48.4,-16.2,0,5],[-54.6,-15.3,-51.9,-9.7,0,5],[-54.6,-15.3,-59.2,-11,0,5]],"b":[-66.3,-71.3,66.2,71.4]}}/*YKS*/;
+/* ====================================================================== flow
+   The hero graphic: a mess goes in, sorted things come out. Half-thoughts drift
+   in from one side and are pulled into the animus ring; clean cards come out the
+   other side into a lane per kind of thing, and one message often becomes two.
+   Canvas 2D, no WebGL. Paused off screen, a still frame under reduced motion.
+   On a phone the same flow runs top to bottom. */
+(function () {
+  var cv = $('#flow'); if (!cv) return;
+  var g = cv.getContext('2d');
+  var MESS = [
+    ['ugh call mum back + dentist fri??', [['call mum back', 'reminder', 'tonight'], ['book the dentist', 'reminder', 'friday']]],
+    ['youtu.be/… that sleep video', [['that video on sleep', 'link', 'youtube']]],
+    ['shelf for the hallway?? idea', [['a shelf for the hallway', 'idea', 'someday']]],
+    ['pay rent!!! also renew passport', [['pay the rent', 'task', 'today'], ['renew the passport', 'task', 'next week']]],
+    ['that article priya sent', [['the article priya sent', 'link', 'nytimes']]],
+    ['start running again. for real', [['start running again', 'goal', 'this month']]],
+    ['reply landlord re the leak', [['reply to the landlord', 'task', 'today']]],
+    ['podcast for the commute?', [['a podcast for the commute', 'link', 'spotify']]],
+    ['gift for dad… before the 20th', [['a birthday gift for dad', 'idea', 'by the 20th'], ['remind me on the 18th', 'reminder', '18 nov']]],
+    ['milk eggs coffee', [['milk, eggs, coffee', 'task', 'today']]]
+  ];
+  var KINDS = ['task', 'reminder', 'link', 'idea', 'goal'];
+  var LABEL = { task: 'tasks', reminder: 'reminders', link: 'links', idea: 'ideas', goal: 'goals' };
+  var W = 0, H = 0, dpr = 1, horiz = true, R = 60, uc = 0, vc = 0, lanes = {}, uLen = 0;
+  var frags = [], cards = [], pending = [], pulse = 0, t = 0, next = 0, mi = 0, raf = 0, seen = false, lastT = 0;
+  var C = {}, SPEED = 58;
+  function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function colours() {
+    C = { ink: css('--ink'), muted: css('--muted'), faint: css('--faint'), surface: css('--surface'), hair: css('--hair'),
+          bg: css('--bg'), accent: '#C6FF3D', violet: '#7C5CFC', light: document.documentElement.getAttribute('data-theme') === 'light' };
+    KINDS.forEach(function (k) { C[k] = css('--t-' + k); });
+  }
+  function xy(u, v) { return horiz ? [u, v] : [v, u]; }
+  function fit() {
+    var r = cv.getBoundingClientRect(); W = r.width; H = r.height; if (!W) return;
+    dpr = Math.min(2, devicePixelRatio || 1);
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    horiz = W >= 700;
+    uLen = horiz ? W : H;
+    var vLen = horiz ? H : W;
+    R = horiz ? Math.max(56, Math.min(92, H * .17)) : Math.max(46, Math.min(64, W * .15));
+    uc = horiz ? W * .46 : H * .3; vc = vLen / 2;
+    lanes = {};
+    if (horiz) {
+      var span = Math.min(H * .68, 300);
+      KINDS.forEach(function (k, i) { lanes[k] = vc - span / 2 + span * i / (KINDS.length - 1); });
+    } else KINDS.forEach(function (k) { lanes[k] = vc; });
+    colours();
+  }
+  function font(px, w) { return (w || 500) + ' ' + px + 'px Geist,system-ui,sans-serif'; }
+  function spawn() {
+    var m = MESS[mi++ % MESS.length], vLen = horiz ? H : W;
+    g.font = font(horiz ? 13 : 12.5, 400);
+    var tw = g.measureText(m[0]).width;
+    var v0 = horiz ? vLen * (.12 + Math.random() * .76) : vLen * (.2 + Math.random() * .6);
+    frags.push({ m: m, w: tw + 22, v0: v0, cv: v0 + (Math.random() - .5) * vLen * .5, t0: t,
+      dur: (horiz ? 3.6 : 2.8) + Math.random() * 1.2, rot: (Math.random() - .5) * .22, seed: Math.random() * 6 });
+  }
+  function emit(m) {
+    if (pending.length > 6) pending.splice(0, pending.length - 6);
+    m[1].forEach(function (o, i) { pending.push({ o: o, at: t + .15 + i * .32 }); });
+  }
+  function cardSize(o) {
+    g.font = font(12.5, 500); var a = g.measureText(o[0]).width;
+    g.font = '500 9px "Geist Mono",ui-monospace,monospace'; var b = g.measureText((o[1] + ' · ' + o[2]).toUpperCase()).width * 1.1;
+    return { w: Math.max(a, b) + 36, h: 40 };
+  }
+  /* free once the last card in the lane is clear of where this one will land,
+     counting the distance it keeps travelling while this one flies out */
+  function laneFree(k, s) {
+    var start = uc + R + 34, gap = 16, mine = horiz ? s.w : s.h;
+    for (var i = 0; i < cards.length; i++) {
+      var c = cards[i]; if (horiz && c.k !== k) continue;
+      var ext = horiz ? c.s.w : c.s.h;
+      if (c.u - ext / 2 < start + mine + gap - SPEED * .7) return false;
+    }
+    return true;
+  }
+  function step(dt) {
+    t += dt;
+    if (t >= next) { spawn(); next = t + (horiz ? 1.05 : 1.8) + Math.random() * .5; }
+    for (var i = frags.length - 1; i >= 0; i--) {
+      var f = frags[i];
+      if ((t - f.t0) / f.dur >= 1) { frags.splice(i, 1); pulse = 1; emit(f.m); }
+    }
+    for (var j = pending.length - 1; j >= 0; j--) {
+      var p = pending[j];
+      if (t < p.at) continue;
+      var s = cardSize(p.o);
+      if (!laneFree(p.o[1], s)) continue;
+      pending.splice(j, 1);
+      cards.push({ o: p.o, k: p.o[1], s: s, t0: t, u: uc, born: true });
+    }
+    for (var k = cards.length - 1; k >= 0; k--) {
+      var c = cards[k], age = t - c.t0, ext = horiz ? c.s.w : c.s.h, land = uc + R + 34 + ext / 2;
+      if (age < .7) { var e = 1 - Math.pow(1 - age / .7, 3); c.u = uc + (land - uc) * e; c.v = vc + (lanes[c.k] - vc) * e; c.sc = .35 + .65 * e; }
+      else { c.u = land + (age - .7) * SPEED; c.v = lanes[c.k]; c.sc = 1; }
+      if (c.u - ext / 2 > uLen + 20) cards.splice(k, 1);
+    }
+    pulse = Math.max(0, pulse - dt * 2.2);
+  }
+  function rr(x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); }
+  function draw() {
+    if (!W) return;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    var c0 = xy(uc, vc), cx = c0[0], cy = c0[1], vLen = horiz ? H : W, L = C.light;
+    var line = L ? '20,20,26' : '245,245,247';
+    /* a low, wide light behind the ring, never a blob */
+    var gl = g.createRadialGradient(cx, cy, 0, cx, cy, Math.min(R * 4, vLen * .48));
+    gl.addColorStop(0, L ? 'rgba(124,92,252,.07)' : 'rgba(124,92,252,.13)');
+    gl.addColorStop(1, 'rgba(124,92,252,0)');
+    g.fillStyle = gl; g.fillRect(0, 0, W, H);
+    g.lineCap = 'round';
+    /* incoming: hairlines converging on the ring */
+    g.lineWidth = .75;
+    for (var i = 0; i < 13; i++) {
+      var v = vLen * (.04 + .92 * i / 12), a = xy(0, v), b = xy(uc - R * 1.02, vc + (v - vc) * .05);
+      var lg = g.createLinearGradient(a[0], a[1], b[0], b[1]);
+      lg.addColorStop(0, 'rgba(' + line + ',0)'); lg.addColorStop(1, 'rgba(' + line + ',' + (L ? .16 : .1) + ')');
+      g.strokeStyle = lg; g.beginPath(); g.moveTo(a[0], a[1]);
+      var q = xy(uc * .55, v + (vc - v) * .12); g.quadraticCurveTo(q[0], q[1], b[0], b[1]); g.stroke();
+    }
+    /* outgoing: one hairline per kind, curving out of the ring into its lane */
+    var drawn = {};
+    KINDS.forEach(function (k) {
+      var lv = lanes[k]; if (drawn[lv]) return; drawn[lv] = 1;
+      var col = horiz ? C[k] : C.accent, s0 = xy(uc + R * 1.02, vc + (lv - vc) * .04), m = uc + R + 70;
+      var e = xy(uLen, lv), c1 = xy(uc + R + 34, vc + (lv - vc) * .04), c2 = xy(uc + R + 30, lv), mm = xy(m, lv);
+      var lg = g.createLinearGradient(s0[0], s0[1], e[0], e[1]);
+      lg.addColorStop(0, hexA(col, .7)); lg.addColorStop(.35, hexA(col, .22)); lg.addColorStop(1, hexA(col, 0));
+      g.strokeStyle = lg; g.lineWidth = .75;
+      g.beginPath(); g.moveTo(s0[0], s0[1]); g.bezierCurveTo(c1[0], c1[1], c2[0], c2[1], mm[0], mm[1]); g.lineTo(e[0], e[1]); g.stroke();
+      if (horiz) {
+        g.font = '500 10px "Geist Mono",ui-monospace,monospace'; g.fillStyle = C.faint; g.textAlign = 'right'; g.textBaseline = 'middle';
+        if ('letterSpacing' in g) g.letterSpacing = '1.2px';
+        g.fillText(LABEL[k].toUpperCase(), W - 20, lv);
+        if ('letterSpacing' in g) g.letterSpacing = '0px';
+        g.fillStyle = col; g.beginPath(); g.arc(W - 20 - g.measureText(LABEL[k].toUpperCase()).width - 18, lv, 2, 0, 6.2832); g.fill();
+      }
+    });
+    /* fragments: loose text in hairline boxes, tilted, pulled in and swallowed */
+    frags.forEach(function (f) {
+      var p = (t - f.t0) / f.dur, e = p * p * (3 - 2 * p), ea = Math.pow(p, 1.6);
+      var u = (1 - ea) * (1 - ea) * (-f.w) + 2 * (1 - ea) * ea * (uc * .5) + ea * ea * uc;
+      var v = (1 - ea) * (1 - ea) * f.v0 + 2 * (1 - ea) * ea * f.cv + ea * ea * vc;
+      if (!horiz) u = (1 - ea) * (1 - ea) * (-30) + 2 * (1 - ea) * ea * (uc * .45) + ea * ea * uc;
+      var sc = 1 - .8 * Math.pow(p, 3), al = Math.min(1, p * 6) * (1 - Math.pow(Math.max(0, (p - .8) / .2), 2));
+      var pt = xy(u, v), h = 28;
+      g.save(); g.translate(pt[0], pt[1]); g.rotate(f.rot * (1 - e) + Math.sin(t * 1.3 + f.seed) * .025 * (1 - e)); g.scale(sc, sc);
+      g.globalAlpha = al;
+      rr(-f.w / 2, -h / 2, f.w, h, 6); g.fillStyle = L ? 'rgba(255,255,255,.75)' : 'rgba(22,22,28,.72)'; g.fill();
+      g.strokeStyle = 'rgba(' + line + ',' + (L ? .14 : .12) + ')'; g.lineWidth = 1; g.stroke();
+      g.fillStyle = C.muted; g.font = font(horiz ? 13 : 12.5, 400); g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(f.m[0], 0, .5);
+      g.restore();
+    });
+    /* sorted cards: flat, hairline, a small dot of colour, mono label */
+    cards.forEach(function (c) {
+      var pt = xy(c.u, c.v), w = c.s.w, h = c.s.h, ext = horiz ? w : h;
+      var fade = Math.max(0, Math.min(1, horiz ? (uLen - 135 - (c.u + ext / 2)) / 110 : (uLen - c.u) / 160));
+      var col = C[c.k];
+      g.save(); g.translate(pt[0], pt[1]); g.scale(c.sc, c.sc); g.globalAlpha = Math.min(1, (t - c.t0) * 4) * fade;
+      rr(-w / 2, -h / 2, w, h, 8); g.fillStyle = L ? '#ffffff' : 'rgba(20,20,26,.92)'; g.fill();
+      g.strokeStyle = 'rgba(' + line + ',' + (L ? .12 : .1) + ')'; g.lineWidth = 1; g.stroke();
+      g.fillStyle = col; g.beginPath(); g.arc(-w / 2 + 13, -h / 2 + 13.5, 2.5, 0, 6.2832); g.fill();
+      g.textAlign = 'left'; g.textBaseline = 'middle';
+      g.fillStyle = C.ink; g.font = font(12.5, 500); g.fillText(c.o[0], -w / 2 + 23, -h / 2 + 14);
+      g.fillStyle = C.faint; g.font = '500 9px "Geist Mono",ui-monospace,monospace';
+      if ('letterSpacing' in g) g.letterSpacing = '.8px';
+      g.fillText((c.o[1] + ' · ' + c.o[2]).toUpperCase(), -w / 2 + 23, -h / 2 + 28.5);
+      if ('letterSpacing' in g) g.letterSpacing = '0px';
+      g.restore();
+    });
+    /* the ring: an instrument, not a badge. Hairline orbits with ticks, one thin
+       arc of light sweeping round, and a small bright core that pulses on intake */
+    g.save(); g.translate(cx, cy);
+    var hole = g.createRadialGradient(0, 0, 0, 0, 0, R * 1.1);
+    hole.addColorStop(0, L ? 'rgba(244,244,241,1)' : 'rgba(11,11,15,1)'); hole.addColorStop(1, L ? 'rgba(244,244,241,0)' : 'rgba(11,11,15,0)');
+    g.fillStyle = hole; g.beginPath(); g.arc(0, 0, R * 1.1, 0, 6.2832); g.fill();
+    g.lineWidth = 1;
+    [1, .74].forEach(function (k, i) {
+      g.strokeStyle = 'rgba(' + line + ',' + (i ? .14 : .22) + ')';
+      g.beginPath(); g.arc(0, 0, R * k, 0, 6.2832); g.stroke();
+    });
+    for (var tk = 0; tk < 60; tk++) {
+      var an = tk / 60 * 6.2832 + t * .05, long = tk % 5 === 0;
+      g.strokeStyle = 'rgba(' + line + ',' + (long ? .32 : .12) + ')'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(Math.cos(an) * R * 1.06, Math.sin(an) * R * 1.06);
+      g.lineTo(Math.cos(an) * R * (long ? 1.13 : 1.09), Math.sin(an) * R * (long ? 1.13 : 1.09)); g.stroke();
+    }
+    var sweep = t * 1.1, arcLen = 1.5;
+    var sg = g.createConicGradient ? g.createConicGradient(sweep - arcLen, 0, 0) : null;
+    if (sg) {
+      var f0 = 0, f1 = arcLen / 6.2832;
+      sg.addColorStop(f0, 'rgba(198,255,61,0)'); sg.addColorStop(f1, 'rgba(198,255,61,1)'); sg.addColorStop(Math.min(1, f1 + .0001), 'rgba(198,255,61,0)');
+      g.strokeStyle = sg; g.lineWidth = 2;
+      g.shadowColor = 'rgba(198,255,61,.6)'; g.shadowBlur = 10;
+      g.beginPath(); g.arc(0, 0, R, sweep - arcLen, sweep); g.stroke();
+      g.shadowBlur = 0;
+    }
+    var hx = Math.cos(sweep) * R, hy = Math.sin(sweep) * R;
+    g.fillStyle = '#C6FF3D'; g.shadowColor = 'rgba(198,255,61,.9)'; g.shadowBlur = 8;
+    g.beginPath(); g.arc(hx, hy, 2, 0, 6.2832); g.fill();
+    var dr = R * .13 * (1 + pulse * .35);
+    g.shadowBlur = 18 + pulse * 18; g.fillStyle = L ? '#4D6B0A' : '#C6FF3D';
+    g.beginPath(); g.arc(0, 0, dr, 0, 6.2832); g.fill(); g.shadowBlur = 0;
+    if (pulse > 0) {
+      g.strokeStyle = 'rgba(198,255,61,' + pulse * .45 + ')'; g.lineWidth = 1;
+      g.beginPath(); g.arc(0, 0, R * .74 * (1 - pulse) + dr * pulse, 0, 6.2832); g.stroke();
+    }
+    g.restore();
+  }
+  function hexA(hex, a) {
+    var h = hex.replace('#', ''); if (h.length === 3) h = h.split('').map(function (x) { return x + x; }).join('');
+    var n = parseInt(h, 16); return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+  function loop(now) {
+    raf = 0; if (!seen) return;
+    var dt = Math.min(.05, (now - (lastT || now)) / 1000); lastT = now;
+    step(dt); draw();
+    raf = requestAnimationFrame(loop);
+  }
+  function warm(sec) { for (var s = 0; s < sec * 30; s++) step(1 / 30); }
+  fit(); warm(horiz ? 9 : 7); draw();
+  if (window.ResizeObserver) new ResizeObserver(function () {
+    var was = horiz; fit(); if (was !== horiz) { frags = []; cards = []; pending = []; warm(horiz ? 9 : 7); } draw();
+  }).observe(cv);
+  new MutationObserver(function () { colours(); draw(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { fit(); draw(); });
+  if (REDUCE) return;
+  var go = function (on) { seen = on; lastT = 0; if (on && !raf) raf = requestAnimationFrame(loop); };
+  if (io) new IntersectionObserver(function (es) { es.forEach(function (e) { go(e.isIntersecting); }); }).observe(cv);
+  else go(true);
+})();
+
 /* ===================================================================== swipe
    A stack of its own, so the gesture can be tried before anything is typed. Same
    directions, words, throw and clear moment as the pile's deck above (Deck.jsx). */
