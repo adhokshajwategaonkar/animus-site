@@ -1,400 +1,916 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-pref="system">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#0B0B0F" />
-<title>Animus — you're going to forget. that's the plan.</title>
-<meta name="description" content="Send it to WhatsApp the second it appears. Animus sorts it, ranks it by what's closest to rotting, and brings it back. Built for ADHD brains — no folders, no filing, no system to keep up with." />
-
-<!-- If the site is ever moved to a custom domain or to the user-site repo
-     (adhokshajwategaonkar.github.io), these three absolute URLs are the only
-     things that need changing. -->
-<link rel="canonical" href="https://adhokshajwategaonkar.github.io/animus-site/" />
+<title>animus · send a mess, get it back sorted</title>
+<meta name="description" content="Message animus on WhatsApp the moment something comes to mind. It splits it up, sorts each thing, and reminds you one thing at a time. Built for ADHD brains: no folders, nothing to organise." />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://adhokshajwategaonkar.github.io/animus-site/" />
-<meta property="og:title" content="Animus — you're going to forget. that's the plan." />
-<meta property="og:description" content="Send it to WhatsApp the second it appears. Animus sorts it, ranks it by what's closest to rotting, and brings it back. Built for ADHD brains — no folders, no filing, no system to keep up with." />
+<meta property="og:title" content="animus · send a mess, get it back sorted" />
+<meta property="og:description" content="Message it on WhatsApp the moment something comes to mind. It sorts each thing and reminds you one thing at a time." />
 <meta property="og:image" content="https://adhokshajwategaonkar.github.io/animus-site/og.png" />
 <meta name="twitter:card" content="summary_large_image" />
 
+<!-- Theme resolved BEFORE first paint. A deferred script setting this on mount
+     flashes the dark canvas at every light-mode visitor on every cold start. -->
+<script>
+(function(){try{var p=localStorage.getItem('animus.theme')||'system';
+var m=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+var r=document.documentElement;r.setAttribute('data-pref',p);
+r.setAttribute('data-theme',p==='system'?m:p);}catch(e){}})();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preconnect" href="https://i.ytimg.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230B0B0F'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23C6FF3D'/%3E%3C/svg%3E" />
 
-<!-- Same Fontshare faces as the app. See docs/DESIGN.md. -->
-<link rel="preconnect" href="https://api.fontshare.com" crossorigin />
-<link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
-
 <style>
-/* ---------------------------------------------------------------- tokens
-   Mirrors web/tailwind.config.js exactly. If a token changes there,
-   change it here — this file deliberately has no build step, so nothing
-   will catch the drift for you. */
+/* ===================================================================== tokens
+   docs/DESIGN.md, verbatim. --accent is a FILL, --accent-ink is TEXT; they are
+   identical in dark, which is exactly why the split is easy to delete by
+   accident. Lime text on a light ground measures 1.18:1. */
 :root{
-  --base:#0B0B0F; --elevated:#16161C; --elevated2:#1F1F27;
-  --stroke:rgba(255,255,255,.08);
+  color-scheme:dark;
+  --bg:#0B0B0F; --sunken:#07070A; --surface:#16161C; --surface2:#1F1F27;
+  --hair:rgba(255,255,255,.085); --hair-2:rgba(255,255,255,.05);
+  --hover:rgba(255,255,255,.045);
   --ink:#F5F5F7; --muted:#A0A0AB; --faint:#6B6B76;
-  --accent:#C6FF3D; --violet:#7C5CFC;
+  --accent:#C6FF3D; --accent-ink:#C6FF3D; --on-accent:#0B0B0F;
+  --warn:#FF5C7C; --warn-bg:rgba(255,92,124,.13); --warn-line:rgba(255,92,124,.30);
+  /* the strike on a quoted-and-retired line. See .five — a lime strike through
+     --faint text on near-black killed both the quote and the mark, so the TEXT
+     now carries the contrast and the strike is only a marker. */
+  --strike:rgba(245,245,247,.32);
+  --wash-drop-bg:#2a2a33; --wash-drop-ink:#c4c4cc; --wash-snooze-bg:#33241a; --wash-snooze-ink:#ffb07a;
+  --nav:rgba(11,11,15,.72); --nav-s:rgba(11,11,15,.93);
+  --card:0 18px 40px -22px rgba(0,0,0,.9),0 1px 0 rgba(255,255,255,.045) inset;
+  --stage:0 50px 90px -50px rgba(0,0,0,.95);
+  --grain:.05; --grain-blend:normal;
+
+  /* type colours. Dots and tiny labels only, never fills — docs/DESIGN.md. */
   --t-idea:#7C5CFC; --t-link:#3DA9FC; --t-task:#C6FF3D; --t-goal:#FF8A3D; --t-reminder:#FF5C7C;
-  --shadow-card:0 18px 40px -18px rgba(0,0,0,.85), 0 2px 8px -2px rgba(0,0,0,.5);
-  --shadow-accent:0 12px 40px -12px rgba(198,255,61,.35);
-  --spring:cubic-bezier(.22,1,.36,1);
-  --gutter:clamp(20px,5vw,40px);
+
+  --gutter:clamp(20px,5vw,56px);
+  --ease:cubic-bezier(.22,1,.36,1);
+  --settle:cubic-bezier(.16,1.12,.3,1);
 }
+:root[data-theme='light']{
+  color-scheme:light;
+  --bg:#F4F4F1; --sunken:#EAEAE5; --surface:#FFFFFF; --surface2:#ECECE8;
+  --hair:rgba(20,20,26,.11); --hair-2:rgba(20,20,26,.06);
+  --hover:rgba(20,20,26,.04);
+  --ink:#14141A; --muted:#55555F; --faint:#86868F;
+  --accent-ink:#4D6B0A;
+  --warn:#C62E4D; --warn-bg:rgba(198,46,77,.09); --warn-line:rgba(198,46,77,.26);
+  --strike:rgba(20,20,26,.3);
+  --wash-drop-bg:#e2e2dd; --wash-drop-ink:#4a4a54; --wash-snooze-bg:#fbe6d6; --wash-snooze-ink:#8a4413;
+  --nav:rgba(244,244,241,.78); --nav-s:rgba(244,244,241,.95);
+  --card:0 1px 0 rgba(20,20,26,.05),0 14px 30px -22px rgba(20,20,26,.3);
+  --stage:0 30px 70px -45px rgba(20,20,26,.45);
+  --grain:.03; --grain-blend:multiply;
+}
+html.xfade,html.xfade *{transition:background-color .3s linear,color .3s linear,border-color .3s linear!important}
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
-body{
-  background:var(--base); color:var(--ink);
-  font-family:Satoshi,system-ui,-apple-system,sans-serif;
-  font-size:17px; line-height:1.6; -webkit-font-smoothing:antialiased;
-  text-rendering:optimizeLegibility; overflow-x:hidden;
-}
+body{background:var(--bg);color:var(--ink);
+  font-family:Geist,system-ui,-apple-system,sans-serif;font-size:17px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:clip}
 ::selection{background:var(--accent);color:#0B0B0F}
 a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+h1,h2,h3{font-family:Geist,system-ui,sans-serif;font-weight:700;letter-spacing:-.03em;line-height:.98}
 
-h1,h2,h3,.display{font-family:"Clash Display",system-ui,sans-serif;font-weight:700;letter-spacing:-.02em;line-height:1.02}
+body::after{content:'';position:fixed;inset:0;z-index:400;pointer-events:none;
+  opacity:var(--grain);mix-blend-mode:var(--grain-blend);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
 
-.label{
-  font-size:11px;font-weight:500;text-transform:uppercase;
-  letter-spacing:.08em;color:var(--faint);
-}
+.wrap{max-width:1240px;margin:0 auto;padding:0 var(--gutter)}
+/* The app's own label style: tiny, uppercase, wide tracking. Used ONLY inside
+   the product artifacts, because the point of them is to look like the app. */
+.label{font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.09em;color:var(--faint)}
 
-.wrap{max-width:1080px;margin:0 auto;padding:0 var(--gutter)}
-
-/* ------------------------------------------------------------- motion
-   No Framer Motion here — that would mean React and a build step for a
-   single static page. Spring feel comes from the easing curve. */
-.rise{opacity:0;transform:translate3d(0,26px,0)}
-.rise.in{opacity:1;transform:none;transition:opacity .7s var(--spring),transform .9s var(--spring);transition-delay:calc(var(--i,0)*80ms)}
-
+.rise{opacity:0;transform:translate3d(0,18px,0)}
+.rise.in{opacity:1;transform:none;transition:opacity .5s var(--ease),transform .68s var(--settle);transition-delay:calc(var(--i,0)*70ms)}
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
-  .rise,.rise.in{opacity:1;transform:none;transition:none}
-  .orb{animation:none!important}
+  .rise,.rise.in{opacity:1!important;transform:none!important;transition:none!important}
+  *{animation:none!important}
 }
 
-/* --------------------------------------------------------------- nav */
-header{
-  position:fixed;inset:0 0 auto 0;z-index:50;
+/* ---------------------------------------------------------------------- nav */
+header{position:fixed;inset:0 0 auto 0;z-index:200;background:var(--nav);
   backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  background:rgba(11,11,15,.6);border-bottom:1px solid transparent;
-  transition:border-color .3s ease,background .3s ease;
+  border-bottom:1px solid transparent;transition:background .25s,border-color .25s}
+header.stuck{background:var(--nav-s);border-bottom-color:var(--hair)}
+header .wrap{display:flex;align-items:center;gap:10px;height:60px}
+.mark{display:flex;align-items:center;gap:9px;font-family:Geist,system-ui,sans-serif;
+  font-weight:600;font-size:18px;letter-spacing:-.02em;margin-right:auto}
+.mark i{width:9px;height:9px;border-radius:99px;background:var(--accent);
+  box-shadow:0 0 12px rgba(198,255,61,.55)}
+/* One button, three states: follow the system, force light, force dark.
+   A cycling glyph is mystery meat on its own, so it carries a title and an
+   aria-label naming the state it is IN, and the icon is the state itself
+   (monitor / sun / moon) rather than an abstract mark. */
+.thbtn{width:36px;height:36px;flex:none;border:1px solid var(--hair);border-radius:11px;
+  display:grid;place-items:center;color:var(--muted);
+  transition:color .2s,background .2s,border-color .2s}
+.thbtn:hover{color:var(--ink);background:var(--hover);border-color:var(--ink)}
+.thbtn:active{transform:scale(.94)}
+.thbtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;
+  stroke-linecap:round;stroke-linejoin:round}
+.thbtn svg g{animation:thin .3s var(--settle) both}
+@keyframes thin{from{opacity:0;transform:scale(.72) rotate(-28deg)}to{opacity:1;transform:none}}
+.thbtn svg g{transform-origin:50% 50%}
+.snd{display:flex;align-items:center;gap:7px;padding:6px 13px;border:1px solid var(--hair);
+  border-radius:999px;font-size:12.5px;color:var(--faint)}
+.snd i{width:7px;height:7px;border-radius:99px;background:currentColor;opacity:.5}
+.snd[aria-pressed='true']{color:var(--ink)} .snd[aria-pressed='true'] i{background:var(--accent);opacity:1}
+/* a. because .ghost comes later and sets display, and would otherwise win */
+@media(max-width:620px){a.nav-hide{display:none}}
+
+/* ------------------------------------------------------------------ buttons */
+.go{display:inline-flex;align-items:center;gap:9px;background:var(--accent);color:var(--on-accent);
+  border-radius:999px;padding:13px 26px;font-weight:700;font-size:15px;
+  box-shadow:0 12px 36px -14px rgba(198,255,61,.45);
+  transition:transform .14s var(--ease),filter .2s,box-shadow .25s}
+.go:hover{filter:brightness(1.06);box-shadow:0 16px 44px -14px rgba(198,255,61,.6)}
+.go:active{transform:scale(.965)}
+.go[data-waking]{opacity:.7;pointer-events:none}
+.ghost{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--hair);border-radius:999px;
+  padding:12px 20px;font-size:14px;color:var(--muted);
+  transition:background .2s,border-color .2s,color .2s,transform .14s var(--ease)}
+.ghost:hover{background:var(--hover);border-color:var(--ink);color:var(--ink)}
+.ghost:active{transform:scale(.97)}
+
+/* --------------------------------------------------------------------- hero */
+.hero{padding:118px 0 0}
+.hero .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:13.5px;color:var(--faint);margin-bottom:22px}
+.hero .eyebrow i{width:6px;height:6px;border-radius:99px;background:var(--accent)}
+.hero h1{font-size:clamp(42px,6.6vw,86px);line-height:.94;letter-spacing:-.042em;max-width:15ch}
+.hero h1 .dim{color:var(--faint)}
+.hero .say{margin-top:20px;max-width:52ch;color:var(--muted);font-size:clamp(16px,1.8vw,18.5px)}
+.hero .cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:28px}
+
+/* ======================================================== the stage
+   The artifact. Two real surfaces inside ONE object, divided by a hairline:
+   the chat you send from, and the pile it lands in. Not two screenshots side
+   by side — one machine with an in and an out. */
+.stage{margin-top:clamp(34px,5vw,56px);border:1px solid var(--hair);border-radius:22px;
+  background:var(--hair);box-shadow:var(--stage);overflow:hidden;
+  /* clip, not just hidden: a hidden box can still be scrolled by script or focus,
+     and that slides the parked sheet up into view below the pile */
+  overflow:clip;
+  display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:1px}
+.pane{background:var(--bg);display:flex;flex-direction:column;min-height:0}
+.pane-top{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--hair-2)}
+.pane-top .dot{width:22px;height:22px;border-radius:99px;background:var(--accent);flex:none;
+  display:grid;place-items:center;font-size:11px;font-weight:900;color:var(--on-accent);
+  font-family:Geist,system-ui,sans-serif}
+.pane-top b{font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+.pane-top .sub{font-size:12px;color:var(--faint);margin-left:auto;text-align:right}
+
+/* ------------------------------------------------------------------- thread
+   Chat GEOMETRY carries the recognition — right-aligned bubble with a tail,
+   ticks, timestamp, composer. The COLOUR is ours: the outgoing bubble is the
+   brand lime. Borrowing another product's palette and chrome would add no
+   clarity and would break the one-accent rule at the same time. */
+.thread{flex:1;min-height:300px;max-height:460px;overflow-y:auto;padding:18px 16px 10px;
+  background:var(--sunken);display:flex;flex-direction:column;gap:9px;scroll-behavior:smooth}
+.bub{max-width:84%;padding:9px 12px 7px;border-radius:14px;position:relative;
+  font-size:15px;line-height:1.42;white-space:pre-wrap;word-break:break-word;
+  animation:pop .34s var(--settle) both}
+@keyframes pop{from{opacity:0;transform:translate3d(0,10px,0) scale(.97)}to{opacity:1;transform:none}}
+.bub.out{align-self:flex-end;background:var(--accent);color:var(--on-accent);border-bottom-right-radius:4px}
+.bub.in{align-self:flex-start;background:var(--surface);color:var(--ink);
+  border:1px solid var(--hair-2);border-bottom-left-radius:4px}
+.bub .stamp{display:inline-flex;align-items:center;gap:4px;float:right;
+  margin:6px 0 -2px 10px;font-size:10.5px;opacity:.6;white-space:nowrap}
+.bub.in .stamp{color:var(--faint);opacity:1}
+.tick{display:inline-block;width:14px;height:9px;position:relative}
+.tick::before,.tick::after{content:'';position:absolute;top:1px;width:5px;height:8px;
+  border:solid currentColor;border-width:0 1.6px 1.6px 0;transform:rotate(40deg);
+  transition:opacity .2s}
+.tick::before{left:0} .tick::after{left:4px;opacity:0}
+.tick[data-s='delivered']::after,.tick[data-s='read']::after{opacity:1}
+.tick[data-s='pending']::before{opacity:.45}
+.typing{align-self:flex-start;display:flex;gap:4px;padding:12px 14px;background:var(--surface);
+  border:1px solid var(--hair-2);border-radius:14px;border-bottom-left-radius:4px}
+.typing i{width:6px;height:6px;border-radius:99px;background:var(--faint);animation:blink 1.1s infinite}
+.typing i:nth-child(2){animation-delay:.18s} .typing i:nth-child(3){animation-delay:.36s}
+@keyframes blink{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+
+.composer{padding:12px 14px 14px;border-top:1px solid var(--hair-2);background:var(--bg)}
+.cbox{display:flex;align-items:flex-end;gap:9px}
+#msg{flex:1;resize:none;background:var(--surface2);color:var(--ink);border:1px solid var(--hair-2);
+  border-radius:20px;padding:11px 14px;font-size:15px;line-height:1.4;
+  max-height:110px;min-height:42px}
+#msg::placeholder{color:var(--faint)}
+#msg:focus{outline:0;border-color:var(--hair)}
+#send{width:42px;height:42px;flex:none;border-radius:99px;background:var(--accent);
+  display:grid;place-items:center;transition:transform .14s var(--ease),filter .2s}
+#send:hover{filter:brightness(1.07)} #send:active{transform:scale(.92)}
+#send svg{width:18px;height:18px;fill:var(--on-accent);margin-left:2px}
+.tries{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+.try{border:1px solid var(--hair);border-radius:999px;padding:6px 12px;font-size:12.5px;
+  color:var(--muted);transition:background .18s,color .18s,border-color .18s}
+.try:hover{background:var(--hover);color:var(--ink);border-color:var(--ink)}
+.try:disabled{opacity:.4;pointer-events:none}
+
+/* ---------------------------------------------------------------- the pile */
+.pile-pane{background:var(--bg);position:relative}
+.pile{flex:none;padding:16px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;
+  height:521px}
+.empty{margin:auto;text-align:center;color:var(--faint);font-size:15px;padding:30px 20px;max-width:30ch}
+.empty b{display:block;color:var(--muted);font-weight:500;margin-bottom:6px}
+.item{background:var(--surface);border:1px solid var(--hair);border-radius:16px;
+  padding:14px 15px;display:grid;grid-template-columns:8px 1fr auto;gap:12px;align-items:start;
+  box-shadow:var(--card);position:relative;text-align:left;width:100%;
+  transition:border-color .18s,background .18s,transform .14s var(--ease)}
+/* only a row that just arrived lands. The pile re-renders on every move, and
+   replaying this on all of them would fight the sweep. */
+.item.fresh{animation:land .5s var(--settle) both}
+.item[role='button']:hover{background:var(--surface2)}
+.item[role='button']:active{transform:scale(.993)}
+.item[role='button']{cursor:pointer}
+a.prev:hover{border-color:var(--ink)}
+@keyframes land{from{opacity:0;transform:translate3d(0,-14px,0) scale(.985)}to{opacity:1;transform:none}}
+.item .sq{width:8px;height:8px;border-radius:99px;background:var(--c);margin-top:6px;
+  box-shadow:0 0 10px var(--c)}
+.item h4{font-size:15.5px;font-weight:700;letter-spacing:-.012em;line-height:1.32}
+.item .meta{margin-top:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.item .when{display:inline-flex;align-items:center;gap:8px}
+.item .tagrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;align-items:center}
+.pill{font-size:11px;border-radius:999px;padding:2px 9px;border:1px solid var(--hair);
+  color:var(--muted);white-space:nowrap}
+.pill.hot{color:var(--warn);border-color:var(--warn-line);background:var(--warn-bg);font-weight:500}
+.pile-foot{padding:12px 16px 16px;border-top:1px solid var(--hair-2);display:flex;
+  align-items:center;gap:10px;font-size:13px;color:var(--faint);flex-wrap:wrap}
+.pile-foot b{color:var(--accent-ink);font-family:Geist,system-ui,sans-serif;font-size:17px;
+  font-weight:700;letter-spacing:-.02em}
+.pile-foot .zz{margin-left:auto;font-size:12px}
+.pile-foot .tosky{font-size:13px;color:var(--ink);border-bottom:1px solid var(--hair)}
+.pile-foot .tosky:hover{border-color:var(--ink)}
+
+/* the sweep, on a clipped copy of the row. wash.js + styles.css in the app. */
+.wash-copy,.wash-copy *{color:var(--wash-ink)!important;background:transparent!important;
+  border-color:color-mix(in srgb,var(--wash-ink) 16%,transparent)!important;
+  box-shadow:none!important;animation:none!important}
+.wash-copy img{visibility:hidden}
+.wash-copy .sq{background:var(--wash-ink)!important}
+
+/* a clear's line. A plain surface in the reading face: lime belongs to the seal. */
+.said{position:absolute;left:50%;top:7px;z-index:4;transform:translate3d(-50%,-8px,0);opacity:0;
+  background:var(--surface);border:1px solid var(--hair);border-radius:999px;padding:6px 14px;
+  font-size:13px;color:var(--ink);white-space:nowrap;box-shadow:var(--card);pointer-events:none;
+  transition:opacity .22s,transform .4s var(--settle)}
+.said.on{opacity:1;transform:translate3d(-50%,0,0)}
+
+/* list or cards. A way of looking at the pile, so it sits on the pile. */
+.vt{display:flex;gap:2px;padding:2px;border:1px solid var(--hair);border-radius:999px;flex:none}
+.vt button{width:30px;height:24px;border-radius:999px;display:grid;place-items:center;color:var(--faint);
+  transition:background .18s,color .18s}
+.vt button:hover{color:var(--ink)}
+.vt button[aria-pressed='true']{background:var(--ink);color:var(--bg)}
+.vt svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ------------------------------------------------------------------ the deck
+   The card takes every direction, so ONLY the card is touch-action:none. The
+   margins and the buttons below it still scroll the page on a phone. */
+.pile.decking{overflow:hidden}
+.deck{display:flex;flex-direction:column;gap:14px;flex:1;outline-offset:6px;border-radius:18px}
+.dstack{position:relative;flex:1;min-height:232px}
+.dcard{position:absolute;inset:0;background:var(--surface);border:1px solid var(--hair);border-radius:18px;
+  padding:16px 18px;box-shadow:var(--card);display:flex;flex-direction:column;overflow:hidden;
+  transition:transform .32s var(--settle),opacity .2s}
+.dcard[data-top]{touch-action:none;cursor:grab;-webkit-user-select:none;user-select:none}
+.dcard[data-top]:active{cursor:grabbing}
+.dcard .dtop{display:flex;align-items:center;gap:8px}
+.dcard .sq{width:8px;height:8px;border-radius:99px;background:var(--c);box-shadow:0 0 10px var(--c)}
+.dcard .dtop .label{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0}
+.dcard .dtop .sq{flex:none}
+.dcard .dtop .dage{margin-left:auto;flex:none;overflow:visible}
+.dcard h4{font-family:Geist,system-ui,sans-serif;font-size:clamp(20px,2.4vw,25px);font-weight:600;
+  letter-spacing:-.022em;line-height:1.14;margin:auto 0;padding:12px 0}
+.dcard .prev{margin:0 0 4px;flex:none}
+.dcard .prev .shot{aspect-ratio:21/9;max-height:180px}
+.dcard .dword{position:absolute;left:50%;top:14px;transform:translateX(-50%);font-size:13px;font-weight:700;
+  padding:4px 13px;border-radius:999px;opacity:0;background:var(--ink);color:var(--bg);pointer-events:none}
+.dcard .dword[data-k='done']{background:var(--accent);color:var(--on-accent)}
+.dacts{display:flex;justify-content:center;align-items:flex-start;gap:clamp(2px,1.2vw,16px)}
+.dacts button{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--faint);flex:0 1 56px;min-width:0}
+.dacts button:hover{color:var(--ink)}
+.dacts i{width:46px;height:46px;border-radius:99px;border:1px solid var(--hair);display:grid;place-items:center;
+  color:var(--ink);transition:transform .14s var(--ease),background .18s}
+.dacts button:hover i{background:var(--hover)}
+.dacts button:active i{transform:scale(.92)}
+.dacts .pri i{background:var(--accent);border-color:transparent;color:var(--on-accent)}
+.dacts .pri:hover i{background:var(--accent);filter:brightness(1.06)}
+.dacts svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.dacts .sm:disabled{opacity:.35;pointer-events:none}
+
+/* --------------------------------------------------------------- previews
+   A video thumbnail is a pure function of the url, so the client derives it —
+   which is why a video captured before previews existed still renders one.
+   An image that 404s falls back to the chip rather than to a broken box. */
+.prev{display:block;margin-top:10px;border:1px solid var(--hair);border-radius:12px;
+  overflow:hidden;background:var(--surface2);position:relative}
+.prev .shot{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--sunken)}
+.prev .play{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+.prev .play i{width:44px;height:44px;border-radius:99px;background:rgba(11,11,15,.55);
+  border:1px solid rgba(255,255,255,.35);display:grid;place-items:center}
+.prev .play i::after{content:'';border-left:12px solid #fff;border-top:7px solid transparent;
+  border-bottom:7px solid transparent;margin-left:3px}
+.prev .cap{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:8px;
+  padding:7px 10px;background:linear-gradient(to top,rgba(0,0,0,.72),transparent);
+  font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.92)}
+.prev .cap em{margin-left:auto;text-transform:none;letter-spacing:0;font-style:normal;
+  color:rgba(255,255,255,.72)}
+.prev.chip{display:flex;align-items:center;gap:9px;padding:9px 11px}
+.prev.chip .fv{width:16px;height:16px;border-radius:4px;background:var(--hair);flex:none}
+.prev.chip .hs{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prev.chip .op{margin-left:auto;font-size:12px;color:var(--faint);flex:none}
+
+/* ============================================================== detail sheet
+   The real one is a bottom sheet and it is the EDITOR — title, type, urgency,
+   due date and a note you write yourself. Status moves leave the pile;
+   field edits update in place, which is why editing a note doesn't make the
+   card vanish behind the sheet. */
+.scrim{position:absolute;inset:0;z-index:5;background:rgba(0,0,0,.45);
+  opacity:0;pointer-events:none;transition:opacity .28s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:6;top:0;
+  background:var(--bg);border-top:1px solid var(--hair);
+  border-radius:20px 20px 0 0;box-shadow:0 -24px 60px -30px rgba(0,0,0,.9);
+  display:flex;flex-direction:column;
+  transform:translate3d(0,101%,0);transition:transform .4s var(--settle)}
+.sheet.on{transform:none}
+.sheet .grab{width:38px;height:4px;border-radius:99px;background:var(--hair);
+  margin:9px auto 0;flex:none}
+.sheet .body{overflow-y:auto;padding:14px 18px 14px;flex:1;min-height:0}
+.sheet .head{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+.sheet .head .sq{width:8px;height:8px;border-radius:99px;background:var(--c);
+  box-shadow:0 0 10px var(--c);flex:none}
+.sheet .head .shut{margin-left:auto;font-size:19px;line-height:1;color:var(--faint);
+  padding:4px 9px;border-radius:9px}
+.sheet .head .shut:hover{background:var(--hover);color:var(--ink)}
+.sheet .ttl{width:100%;background:none;border:0;resize:none;overflow:hidden;
+  font-family:Geist,system-ui,sans-serif;font-weight:700;font-size:23px;
+  letter-spacing:-.025em;line-height:1.15;padding:0}
+.sheet .ttl:focus{outline:0}
+.fld{margin-top:18px}
+.fld>.label{display:block;margin-bottom:9px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1px solid var(--hair);border-radius:999px;padding:6px 13px;font-size:13px;
+  color:var(--muted);display:inline-flex;align-items:center;gap:7px;
+  transition:background .18s,color .18s,border-color .18s}
+.chip:hover{background:var(--hover);color:var(--ink)}
+.chip i{width:7px;height:7px;border-radius:99px;background:var(--c);flex:none}
+.chip[aria-pressed='true']{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.urg{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.urg button{border:1px solid var(--hair);border-radius:12px;padding:9px 0;font-size:13.5px;
+  color:var(--muted);transition:background .18s,color .18s,border-color .18s}
+.urg button:hover{background:var(--hover);color:var(--ink)}
+.urg button[aria-pressed='true']{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.dt{display:flex;gap:8px;align-items:center}
+.dt input{flex:1;background:var(--surface2);border:1px solid var(--hair-2);border-radius:12px;
+  padding:10px 12px;font-size:14px}
+.dt input:focus{outline:0;border-color:var(--hair)}
+.dt .clr{font-size:12.5px;color:var(--faint);padding:8px 10px;border-radius:9px}
+.dt .clr:hover{background:var(--hover);color:var(--ink)}
+/* NOT .note — that class belongs to the lock-screen notification, which sits
+   at opacity:0 until it animates in. A textarea sharing the name inherited the
+   zero and rendered invisible while still accepting every keystroke. */
+.selfnote{width:100%;min-height:76px;resize:vertical;background:var(--surface2);
+  border:1px solid var(--hair-2);border-radius:14px;padding:11px 13px;font-size:14px;line-height:1.5}
+.selfnote:focus{outline:0;border-color:var(--hair)}
+.selfnote::placeholder{color:var(--faint)}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:18px}
+.facts div{border:1px solid var(--hair-2);border-radius:12px;padding:9px 11px}
+.facts b{display:block;font-size:13.5px;font-weight:500;margin-top:3px}
+.hist{margin-top:18px;list-style:none}
+.hist li{display:flex;gap:9px;font-size:13.5px;color:var(--muted);padding:3px 0}
+.hist li i{width:7px;height:7px;border-radius:99px;background:var(--accent);margin-top:7px;flex:none}
+.hist li em{font-style:normal;color:var(--faint)}
+
+/* hold-to-delete. A tap-through confirm gets dismissed on autopilot; a hold
+   can't. The fill races the thumb and aborting is just lifting off. */
+.del{margin-top:20px;display:flex;align-items:center;gap:12px;
+  border-top:1px solid var(--hair-2);padding-top:14px}
+.del p{font-size:12.5px;color:var(--faint);flex:1}
+.hold{position:relative;overflow:hidden;border:1px solid var(--warn-line);border-radius:999px;
+  padding:9px 16px;font-size:13px;color:var(--warn);flex:none;touch-action:none;
+  -webkit-user-select:none;user-select:none}
+.hold span{position:relative;z-index:1}
+.hold::before{content:'';position:absolute;left:0;top:0;bottom:0;width:0;background:var(--warn-bg)}
+.hold.arm::before{width:100%;transition:width .85s linear}
+.hold.arm{animation:wig .14s linear infinite}
+@keyframes wig{0%,100%{transform:translateX(0)}25%{transform:translateX(-1.2px)}75%{transform:translateX(1.2px)}}
+
+.sheet .bar{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--hair);
+  background:var(--bg);flex:none}
+/* direct children only — the snooze panel lives in here too and must not
+   inherit the action row's pill shape */
+.sheet .bar > button{flex:1;border-radius:999px;padding:11px 0;font-size:14px;font-weight:500;
+  border:1px solid var(--hair);color:var(--muted);
+  transition:background .18s,color .18s,border-color .18s,filter .18s}
+.sheet .bar > button:hover{background:var(--hover);color:var(--ink)}
+.sheet .bar > button.pri{background:var(--accent);color:var(--on-accent);border-color:transparent;
+  font-weight:700}
+.sheet .bar > button.pri:hover{filter:brightness(1.06);background:var(--accent);color:var(--on-accent)}
+
+/* the snooze presets, used in the sheet AND on the lock screen */
+.snoozehead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px}
+.snoozehead .cancel{font-size:12.5px;color:var(--faint);padding:2px 6px;border-radius:7px}
+.snoozehead .cancel:hover{background:var(--hover);color:var(--ink)}
+.snooze{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.snooze button{border:1px solid var(--hair);border-radius:12px;padding:8px 11px;text-align:left;
+  display:flex;flex-direction:column;gap:2px;
+  transition:background .18s,border-color .18s}
+.snooze button b{font-size:13.5px;font-weight:500;color:var(--ink)}
+.snooze button em{font-style:normal;font-size:11.5px;color:var(--faint)}
+.snooze button:hover{background:var(--hover);border-color:var(--ink)}
+.why{width:100%;margin-top:9px;background:var(--surface2);border:1px solid var(--hair-2);
+  border-radius:12px;padding:9px 12px;font-size:13.5px}
+.why:focus{outline:0;border-color:var(--hair)}
+.why::placeholder{color:var(--faint)}
+.whynote{margin-top:7px;font-size:11.5px;color:var(--faint);line-height:1.45}
+
+.stage-note{margin-top:14px;font-size:13px;color:var(--faint);max-width:72ch}
+
+/* -------------------------------------------------------------------- bands */
+.band{padding:clamp(72px,11vh,130px) 0}
+.band h2{font-size:clamp(28px,4.6vw,54px);max-width:17ch}
+.band .say{margin-top:16px;max-width:52ch;color:var(--muted);font-size:16.5px}
+
+/* =============================================================== the return
+   One column of argument, one device. A phone, not a floating card, because
+   the claim is "it reaches you where you already are". */
+.ret{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:clamp(34px,6vw,86px);
+  align-items:center}
+.ret .copy{max-width:48ch}
+.ret .copy h2{max-width:17ch}
+.ret .pts{margin:26px 0 0;padding:0;list-style:none;display:grid;gap:13px}
+.ret .pts li{display:grid;grid-template-columns:auto 1fr;gap:11px;font-size:15.5px;
+  color:var(--muted);line-height:1.5}
+.ret .pts li i{width:6px;height:6px;border-radius:99px;background:var(--accent);margin-top:9px}
+.ret .pts li b{color:var(--ink);font-weight:500}
+.ret .act{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:28px}
+.ret .act .hint{font-size:13px;color:var(--faint)}
+
+.phone{width:302px;flex:none;border-radius:42px;padding:9px;background:var(--surface2);
+  border:1px solid var(--hair);box-shadow:var(--stage);justify-self:end}
+.screen{border-radius:34px;background:var(--sunken);overflow:hidden;padding:14px 12px 16px;
+  height:560px;display:flex;flex-direction:column;position:relative;
+  background-image:radial-gradient(120% 70% at 50% 0%,rgba(198,255,61,.07),transparent 60%)}
+.sbar{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);padding:0 6px 10px}
+.sbar .bars{display:flex;align-items:flex-end;gap:1.5px;margin-left:auto}
+.sbar .bars i{width:2.5px;background:currentColor;border-radius:1px}
+.sbar .bat{width:20px;height:10px;border:1px solid currentColor;border-radius:3px;padding:1.5px}
+.sbar .bat::after{content:'';display:block;height:100%;width:66%;background:currentColor;border-radius:1px}
+.lockclock{text-align:center;margin:20px 0 2px}
+.lockclock b{display:block;font-family:Geist,system-ui,sans-serif;font-weight:600;font-size:62px;
+  letter-spacing:-.045em;line-height:1;color:var(--ink);opacity:.92}
+.lockclock span{display:block;font-size:13px;color:var(--muted);margin-top:7px}
+.notes{margin-top:24px;display:flex;flex-direction:column;gap:9px;min-height:0;overflow-y:auto;scrollbar-width:none}
+.waiting{margin-top:auto;text-align:center;font-size:12px;color:var(--faint);padding-top:16px}
+.note{width:100%;text-align:left;background:rgba(255,255,255,.07);border:1px solid var(--hair);
+  border-radius:18px;padding:12px 13px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  opacity:0;transform:translate3d(0,-16px,0) scale(.96)}
+:root[data-theme='light'] .note{background:rgba(255,255,255,.8)}
+.note.in{opacity:1;transform:none;transition:opacity .25s,transform .5s var(--settle)}
+.note.out{opacity:0;transform:translate3d(0,-12px,0) scale(.96);transition:opacity .28s,transform .28s}
+.note .who{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--muted)}
+.note .who i{width:15px;height:15px;border-radius:5px;background:var(--accent);flex:none}
+.note .who em{margin-left:auto;font-style:normal;color:var(--faint)}
+.note p{margin-top:7px;font-size:14px;line-height:1.42;color:var(--ink)}
+.note .acts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:11px}
+.note .acts button{font-size:12.5px;color:var(--ink);border:1px solid var(--hair);
+  border-radius:10px;padding:7px 0;transition:background .18s}
+.note .acts button:hover{background:var(--hover)}
+.note .later{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+.note .later button{font-size:12px;color:var(--muted);border:1px solid var(--hair-2);
+  border-radius:9px;padding:6px 0;transition:background .18s,color .18s}
+.note .later button:hover{background:var(--hover);color:var(--ink)}
+.note.settled{opacity:.55}
+.note .resolved{margin-top:10px;font-size:12.5px;color:var(--accent-ink)}
+
+/* ==================================================================== the sky
+   Night in both themes, same as the app. Hand-copied from lib/sky.js and Sky.jsx,
+   with positions baked by web/scripts/site-sky.mjs. touch-action:pan-y so one
+   finger still scrolls the page. Tap is how you move, there is no pinch here. */
+.skyframe{position:relative;margin-top:clamp(26px,4vw,44px);height:clamp(540px,58vw,640px);
+  border-radius:22px;overflow:hidden;background:#08080d;box-shadow:var(--stage);
+  border:1px solid var(--hair);color:#f5f5f7}
+#skyc{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:pan-y;cursor:default}
+.skyhead{position:absolute;left:clamp(16px,2.6vw,28px);top:clamp(16px,2.2vw,24px);pointer-events:none;right:96px}
+.skyhead .label{color:#85858f}
+.skyhead b{display:block;font-family:Geist,system-ui,sans-serif;font-weight:700;
+  font-size:clamp(28px,4vw,42px);letter-spacing:-.03em;line-height:1.05;margin-top:4px}
+@media (max-width:640px){.skyframe{height:700px}}
+.skysub{margin:6px 0 0;font-size:13px;line-height:1.45;color:#d8d8de;max-width:34ch}
+.skykey{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:10px;font-size:12px;color:#85858f}
+.skykey span{display:inline-flex;align-items:center;gap:6px}
+.skykey i{width:7px;height:7px;border-radius:99px;background:var(--k)}
+.skyback{position:absolute;right:clamp(12px,2vw,20px);top:clamp(12px,2vw,20px);font-size:12.5px;color:#d8d8de;
+  border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:6px 13px;background:rgba(22,22,31,.92)}
+.skyback:hover{border-color:#f5f5f7}
+.skycap{position:absolute;left:clamp(12px,2vw,20px);bottom:clamp(12px,2vw,20px);max-width:min(380px,calc(100% - 24px));
+  padding:12px 16px;border-radius:16px;background:rgba(22,22,31,.92);border:1px solid rgba(255,255,255,.1);
+  pointer-events:none;transition:opacity .2s}
+.skycap[data-empty]{opacity:0}
+.skycap b{display:block;font-weight:500;font-size:15.5px;line-height:1.3}
+.skycap span{display:flex;align-items:center;gap:7px;font-size:12.5px;color:#85858f;margin-top:4px}
+.skycap span i{width:7px;height:7px;border-radius:99px;background:var(--k);flex:none}
+.skycap em{display:block;font-style:normal;font-size:13px;color:#d8d8de;margin-top:5px}
+.skyhint{margin-top:14px;font-size:13px;color:var(--faint);max-width:72ch}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+
+/* ------------------------------------------------------------------- five */
+.five{margin-top:clamp(26px,4vw,44px);border-top:1px solid var(--hair)}
+.five .r{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);
+  gap:clamp(14px,4vw,54px);padding:26px 0;border-bottom:1px solid var(--hair-2);align-items:baseline}
+/* The quote has to stay READABLE while reading as retired. The old version put
+   a lime strike through --faint text on near-black and killed both. The text
+   now carries normal body contrast and the strike is only a marker. */
+.five .was{color:var(--muted);font-size:15.5px;display:flex;gap:10px;align-items:baseline}
+.five .was s{text-decoration-line:line-through;text-decoration-color:var(--strike);text-decoration-thickness:1px}
+.five .was i{font-style:normal;color:var(--faint);font-size:12px;flex:none;line-height:1.5}
+.five .now{font-size:18.5px;font-weight:500;letter-spacing:-.012em}
+.five .now span{display:block;margin-top:7px;font-size:15.5px;font-weight:400;color:var(--muted)}
+
+/* ------------------------------------------------------------------- close */
+.close{padding:clamp(86px,15vh,170px) 0;text-align:center}
+.close h2{font-size:clamp(32px,6.6vw,80px);max-width:none;margin:0 auto}
+.close .say{margin:20px auto 0}
+.close .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+footer{border-top:1px solid var(--hair);padding:44px 0 56px}
+.foot{display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:flex-end}
+.foot p{color:var(--muted);font-size:14.5px;margin-top:12px;max-width:40ch}
+.foot .fine{color:var(--faint);font-size:12.5px;max-width:46ch}
+.foot a.mail{color:var(--accent-ink);border-bottom:1px solid currentColor}
+
+/* ===================================================================== swipe */
+.sw{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:clamp(34px,6vw,86px);align-items:center}
+.sw .copy h2{max-width:15ch}
+.moves{list-style:none;margin:26px 0 0;padding:0;display:grid;gap:4px}
+.moves button{display:flex;gap:14px;align-items:flex-start;text-align:left;width:100%;padding:11px 12px;
+  border-radius:14px;color:var(--muted);font-size:14.5px;line-height:1.45;transition:background .18s}
+.moves button:hover{background:var(--hover)}
+.moves b{display:block;color:var(--ink);font-weight:500;font-size:15.5px;margin-bottom:2px}
+.moves .k{width:34px;height:34px;border-radius:99px;border:1px solid var(--hair);flex:none;display:grid;
+  place-items:center;font-style:normal;font-size:15px;color:var(--ink)}
+.moves .k-done{background:var(--accent);border-color:transparent;color:var(--on-accent)}
+.swhint{margin-top:16px;font-size:13px;color:var(--faint);padding-left:12px}
+.swstage{position:relative;border:1px solid var(--hair);border-radius:22px;background:var(--sunken);
+  box-shadow:var(--stage);padding:16px 18px 18px;height:540px;display:flex;flex-direction:column;gap:16px;overflow:clip}
+.swtop{display:flex;align-items:baseline;justify-content:space-between}
+.swtop b{font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+.swtop span{font-size:12px;color:var(--faint)}
+.swdeck{position:relative;flex:1;outline-offset:6px;border-radius:18px;margin-bottom:22px}
+.swdeck .dcard{background:var(--surface)}
+.swdeck .dcard[data-top]{border-color:color-mix(in srgb,var(--edge,var(--hair)) 70%,var(--hair))}
+.swdeck .dcard .tint{position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;
+  background:var(--edge,transparent);mix-blend-mode:normal}
+.swdeck .dword[data-k='dropped']{background:var(--wash-drop-bg);color:var(--wash-drop-ink)}
+.swdeck .dword[data-k='snoozed']{background:var(--wash-snooze-bg);color:var(--wash-snooze-ink)}
+.swdeck .dcard .chiprow{display:flex;gap:6px;flex-wrap:wrap}
+.swdeck .later{position:absolute;inset:0;z-index:9;border-radius:18px;background:var(--surface);
+  padding:16px 18px;display:flex;flex-direction:column;gap:10px;animation:pop .3s var(--settle) both}
+.swdeck .later .snooze{grid-template-columns:1fr 1fr}
+.swempty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;text-align:center;color:var(--muted);font-size:15px}
+.swempty b{font-family:Geist,system-ui,sans-serif;font-size:24px;color:var(--ink);letter-spacing:-.02em}
+.swstage .said{top:auto;bottom:96px}
+
+/* ==================================================================== detail */
+.edstage{margin-top:clamp(30px,4.5vw,48px);border:1px solid var(--hair);border-radius:22px;background:var(--hair);
+  box-shadow:var(--stage);overflow:clip;display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:1px;height:780px}
+.edlist{background:var(--bg);display:flex;flex-direction:column;min-height:0}
+.edrows{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.edrows .item{padding:12px 13px}
+.edrows .item h4{font-size:14.5px}
+.edrows .item[aria-current='true']{border-color:var(--ink);background:var(--surface2)}
+.edrows .clear{margin:auto;text-align:center;color:var(--faint);font-size:14.5px;display:grid;gap:12px;justify-items:center}
+.edrows .clear b{color:var(--ink);font-weight:500}
+.ed{background:var(--bg);display:flex;flex-direction:column;min-height:0;position:relative}
+.ed .edbody{flex:1;overflow-y:auto;padding:18px 22px 20px}
+.ed .edhead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ed .edhead .sq{width:8px;height:8px;border-radius:99px;background:var(--c);box-shadow:0 0 10px var(--c);flex:none}
+.ed .edhead .saved{margin-left:auto;font-size:12px;color:var(--faint);opacity:0;transition:opacity .25s}
+.ed .edhead .saved.on{opacity:1}
+.ed .ttl{width:100%;background:none;border:0;resize:none;overflow:hidden;font-family:Geist,system-ui,sans-serif;
+  font-weight:700;font-size:26px;letter-spacing:-.025em;line-height:1.15;padding:0}
+.ed .ttl:focus{outline:0}
+.ed .row2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.notebox{border:1px solid var(--hair-2);border-radius:14px;background:var(--surface2);overflow:hidden}
+.notebox .tb{display:flex;gap:2px;padding:6px 8px;border-bottom:1px solid var(--hair-2)}
+.notebox .tb button{min-width:30px;height:28px;border-radius:8px;color:var(--muted);font-size:13px;font-weight:600;display:grid;place-items:center}
+.notebox .tb button:hover{background:var(--hover);color:var(--ink)}
+.notebox .tb .sep{width:1px;background:var(--hair);margin:4px 5px}
+.notebox .nt{min-height:86px;padding:11px 13px;font-size:14px;line-height:1.55;outline:0}
+.notebox .nt:empty::before{content:attr(data-ph);color:var(--faint)}
+.notebox .nt ul{padding-left:18px}
+.ed .hist li em b{font-weight:400;color:var(--muted)}
+.dock{display:flex;gap:8px;padding:12px 22px;border-top:1px solid var(--hair);background:var(--bg);flex:none}
+.dock > button{flex:1;border-radius:999px;padding:11px 0;font-size:14px;font-weight:500;border:1px solid var(--hair);
+  color:var(--muted);display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  transition:background .18s,color .18s,filter .18s}
+.dock > button:hover{background:var(--hover);color:var(--ink)}
+.dock > button.pri{background:var(--accent);color:var(--on-accent);border-color:transparent;font-weight:700}
+.dock > button.pri:hover{filter:brightness(1.06);background:var(--accent);color:var(--on-accent)}
+.dock kbd{font-family:inherit;font-size:11px;padding:1px 6px;border-radius:6px;border:1px solid currentColor;opacity:.5}
+.dock .later{flex:1}
+@media(max-width:900px){
+  .sw{grid-template-columns:1fr}
+  .swstage{max-width:440px;width:100%;justify-self:center}
+  .edstage{grid-template-columns:1fr;height:auto}
+  .edlist .edrows{max-height:250px}
+  .ed .edbody{max-height:520px}
 }
-header.stuck{border-bottom-color:var(--stroke);background:rgba(11,11,15,.82)}
-header .wrap{display:flex;align-items:center;justify-content:space-between;height:68px}
-.mark{display:flex;align-items:center;gap:10px;font-family:"Clash Display",sans-serif;font-weight:600;font-size:19px;letter-spacing:-.02em}
-.mark i{width:9px;height:9px;border-radius:99px;background:var(--accent);box-shadow:0 0 14px rgba(198,255,61,.7)}
-
-/* ------------------------------------------------------------ buttons */
-.btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:9px;
-  border-radius:999px;font-weight:700;font-size:15px;white-space:nowrap;
-  border:1px solid transparent;cursor:pointer;
-  transition:transform .35s var(--spring),box-shadow .35s var(--spring),background .2s ease,border-color .2s ease;
+@media(max-width:560px){
+  .ed .row2{grid-template-columns:1fr}
+  .swstage{height:500px}
+  .dock kbd{display:none}
 }
-.btn:active{transform:scale(.97)}
-.btn-primary{background:var(--accent);color:#0B0B0F;padding:14px 26px;box-shadow:var(--shadow-accent)}
-.btn-primary:hover{box-shadow:0 18px 52px -12px rgba(198,255,61,.5);transform:translateY(-1px)}
-.btn-ghost{background:transparent;color:var(--ink);border-color:var(--stroke);padding:14px 24px}
-.btn-ghost:hover{background:var(--elevated2);border-color:rgba(255,255,255,.16)}
-.btn-sm{padding:10px 20px;font-size:14px}
-.btn[data-waking]{opacity:.75;pointer-events:none}
 
-/* --------------------------------------------------------------- hero */
-.hero{position:relative;padding:180px 0 128px;overflow:hidden}
-.orb{
-  position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none;
-  animation:drift 22s ease-in-out infinite;
+/* -------------------------------------------------------------- responsive */
+@media(max-width:1060px){
+  .stage{grid-template-columns:minmax(0,1fr)}
+  .thread{max-height:330px}
+  .pile{height:470px}
+  .ret{grid-template-columns:1fr}
+  .phone{justify-self:center;margin:0 auto}
+  .five .r{grid-template-columns:1fr;gap:10px}
 }
-.orb-a{width:520px;height:520px;top:-190px;left:-140px;background:rgba(198,255,61,.13)}
-.orb-b{width:440px;height:440px;top:60px;right:-180px;background:rgba(124,92,252,.14);animation-delay:-8s}
-@keyframes drift{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(-6%,4%,0) scale(1.15)}}
-/* Faint grain so the black reads as film, not a flat fill. */
-.hero::after{
-  content:'';position:absolute;inset:0;pointer-events:none;opacity:.22;mix-blend-mode:overlay;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+@media(max-width:760px){
+  .facts{grid-template-columns:1fr 1fr}
 }
-.hero .wrap{position:relative;z-index:1}
-
-.eyebrow{
-  display:inline-flex;align-items:center;gap:9px;
-  border:1px solid var(--stroke);border-radius:999px;
-  padding:7px 15px 7px 12px;background:rgba(22,22,28,.6);margin-bottom:34px;
-}
-.eyebrow i{width:6px;height:6px;border-radius:99px;background:var(--accent);animation:pulse 2.6s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(198,255,61,.5)}50%{opacity:.55;box-shadow:0 0 0 6px rgba(198,255,61,0)}}
-
-h1{font-size:clamp(44px,8.2vw,88px);max-width:14ch;letter-spacing:-.03em}
-h1 em{font-style:normal;color:var(--faint)}
-.lede{margin-top:28px;max-width:52ch;font-size:clamp(17px,2.1vw,20px);color:var(--muted)}
-.cta{display:flex;flex-wrap:wrap;gap:13px;margin-top:44px}
-.cta-note{margin-top:20px;font-size:13.5px;color:var(--faint)}
-
-/* ------------------------------------------------------------ sections */
-section.band{padding:112px 0;border-top:1px solid var(--stroke)}
-.section-head{max-width:46ch;margin-bottom:60px}
-.section-head h2{font-size:clamp(30px,4.6vw,46px);margin-top:14px}
-.section-head p{margin-top:18px;color:var(--muted)}
-
-/* ---------------------------------------------------------------- card */
-.card{
-  position:relative;border-radius:22px;background:var(--elevated);
-  border:1px solid var(--stroke);box-shadow:var(--shadow-card);padding:30px;
-  transition:transform .45s var(--spring),border-color .3s ease;
-}
-.card::before{
-  content:'';position:absolute;inset:0 0 auto 0;height:1px;border-radius:22px 22px 0 0;pointer-events:none;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.14) 25%,rgba(255,255,255,.18) 50%,rgba(255,255,255,.14) 75%,transparent);
-}
-.card:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.14)}
-
-.steps{display:grid;gap:18px;grid-template-columns:repeat(3,1fr)}
-.step .num{font-family:"Clash Display",sans-serif;font-size:15px;color:var(--accent);letter-spacing:.04em}
-.step h3{font-size:22px;margin:20px 0 12px}
-.step p{color:var(--muted);font-size:15.5px}
-
-/* ------------------------------------------------------- catches / dots */
-.catches{display:flex;flex-wrap:wrap;gap:11px}
-.chip{
-  display:inline-flex;align-items:center;gap:10px;
-  border:1px solid var(--stroke);border-radius:999px;background:var(--elevated);
-  padding:11px 20px 11px 16px;font-size:15px;font-weight:500;
-  transition:transform .4s var(--spring),background .25s ease;
-}
-.chip:hover{transform:translateY(-3px);background:var(--elevated2)}
-.chip i{width:8px;height:8px;border-radius:99px;background:var(--c);box-shadow:0 0 12px var(--c)}
-
-/* ------------------------------------------------------------- feed demo */
-.split{display:grid;gap:56px;grid-template-columns:1fr 1fr;align-items:center}
-.feed{display:flex;flex-direction:column;gap:12px}
-.item{
-  display:flex;gap:14px;align-items:flex-start;
-  border-radius:18px;background:var(--elevated);border:1px solid var(--stroke);
-  box-shadow:var(--shadow-card);padding:18px 20px;
-}
-.item i{width:8px;height:8px;border-radius:99px;background:var(--c);margin-top:8px;flex:none;box-shadow:0 0 10px var(--c)}
-.item strong{display:block;font-weight:700;font-size:15.5px;letter-spacing:-.01em}
-.item span{display:block;color:var(--muted);font-size:14px;margin-top:3px}
-.item .meta{margin-top:9px}
-
-/* ------------------------------------------------------------ hero stat */
-.stat{text-align:center;padding:52px 30px}
-.stat .big{
-  font-family:"Clash Display",sans-serif;font-weight:700;
-  font-size:clamp(88px,15vw,150px);line-height:1;letter-spacing:-.045em;
-  color:var(--accent);text-shadow:0 0 70px rgba(198,255,61,.3);
-}
-.stat .cap{margin-top:14px;font-size:20px;color:var(--ink)}
-.stat .sub{margin-top:8px;color:var(--faint);font-size:14.5px}
-
-/* --------------------------------------------------------------- footer */
-footer{border-top:1px solid var(--stroke);padding:72px 0 60px}
-.foot{display:flex;flex-wrap:wrap;gap:28px;justify-content:space-between;align-items:flex-end}
-.foot p{color:var(--muted);max-width:38ch;margin-top:16px;font-size:15px}
-.foot a.mail{color:var(--accent);border-bottom:1px solid rgba(198,255,61,.3);padding-bottom:1px}
-.foot .fine{color:var(--faint);font-size:13px}
-
-@media(max-width:860px){
-  .steps{grid-template-columns:1fr}
-  .split{grid-template-columns:1fr;gap:40px}
-  .hero{padding:150px 0 96px}
-  section.band{padding:88px 0}
-  .nav-cta{display:none}
+@media(max-width:560px){
+  .hero{padding:96px 0 0}
+  .phone{width:100%;max-width:330px}
+  .urg{grid-template-columns:1fr 1fr}
+  .snooze{grid-template-columns:1fr 1fr}
 }
 </style>
+<!-- Without JS nothing adds .in, so every revealed block would stay invisible. -->
+<noscript><style>.rise{opacity:1!important;transform:none!important}</style></noscript>
 </head>
 <body>
 
 <header id="nav">
   <div class="wrap">
     <a class="mark" href="#top"><i></i>animus</a>
-    <a class="btn btn-ghost btn-sm nav-cta app-link" href="#">open app</a>
+    <button class="thbtn" id="th" type="button"></button>
+    <button class="snd" id="snd" aria-pressed="false"><i></i><span id="sndl">sound</span></button>
+    <a class="ghost nav-hide app-link" href="#">open animus</a>
   </div>
 </header>
 
 <main id="top">
 
-  <!-- ======================================================== hero -->
-  <section class="hero">
-    <div class="orb orb-a"></div>
-    <div class="orb orb-b"></div>
-    <div class="wrap">
-      <div class="eyebrow rise"><i></i><span class="label" style="color:var(--muted)">built for adhd brains · free while it's small</span></div>
-      <h1 class="rise" style="--i:1">you're going to forget.<br /><em>that's the plan.</em></h1>
-      <p class="lede rise" style="--i:2">
-        send it to whatsapp the second it appears — a link, a half-thought, a thing you'd
-        swear you'll remember. it's out of your head and it isn't lost. no folders, no filing,
-        no system to keep up with.
+<!-- ==================================================================== hero
+     Headline, ONE line of sub, then the artifact. The proof is the product
+     working, not a description of it. -->
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow rise"><i></i>built for ADHD brains · free while it's small</p>
+    <h1 class="rise" style="--i:1">send a mess.<br /><span class="dim">get it back sorted.</span></h1>
+    <p class="say rise" style="--i:2">
+      message animus on WhatsApp the moment something comes to mind: a link, a task, half a
+      thought, or several at once. it splits them up and sorts each one. you never organise anything.
+    </p>
+    <div class="cta rise" style="--i:3">
+      <a class="go app-link" href="#">open animus</a>
+      <span style="font-size:13.5px;color:var(--faint)">↓ or play with a demo first</span>
+    </div>
+
+    <!-- ============================================================ the stage -->
+    <div class="stage rise" style="--i:4">
+      <!-- in -->
+      <div class="pane">
+        <div class="pane-top">
+          <span class="dot">a</span><b>animus</b>
+          <span class="sub" id="status">on WhatsApp</span>
+        </div>
+        <div class="thread" id="thread" aria-live="polite">
+          <div class="bub in">send me a link, a reminder, or whatever you keep forgetting. i'll sort it.<span class="stamp">9:41</span></div>
+        </div>
+        <div class="composer">
+          <div class="cbox">
+            <textarea id="msg" rows="1" spellcheck="false" placeholder="type it however it comes out…" aria-label="message to animus"></textarea>
+            <button id="send" aria-label="send">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.3 21.4 23 12 2.3 2.6 2.3 10l14.9 2-14.9 2z"/></svg>
+            </button>
+          </div>
+          <div class="tries" id="tries"></div>
+        </div>
+      </div>
+      <!-- out -->
+      <div class="pane pile-pane" id="pilePane">
+        <div class="pane-top">
+          <b>the pile</b>
+          <span class="sub" id="pileSub">newest first</span>
+          <div class="vt" role="group" aria-label="how to look at the pile">
+            <button type="button" id="vList" aria-pressed="true" aria-label="list view"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg></button>
+            <button type="button" id="vCards" aria-pressed="false" aria-label="card view"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="4.5" width="8" height="9" rx="1.8"/><path d="M6 2h4"/></svg></button>
+          </div>
+        </div>
+        <div class="pile" id="pile">
+          <div class="empty" id="empty"><b>nothing here yet.</b>send something on the left and it lands here.</div>
+        </div>
+        <div class="pile-foot">
+          <b id="cleared">0</b> cleared this week
+          <a class="tosky" id="toSky" href="#sky" hidden>see it in your sky ↓</a>
+          <span class="zz" id="zz" hidden></span>
+        </div>
+        <div class="said" id="said" role="status"></div>
+
+        <!-- the editor -->
+        <div class="scrim" id="scrim"></div>
+        <div class="sheet" id="sheet" role="dialog" aria-label="item detail" aria-hidden="true">
+          <div class="grab"></div>
+          <div class="body" id="sheetBody"></div>
+          <div class="bar" id="sheetBar"></div>
+        </div>
+      </div>
+    </div>
+    <p class="stage-note rise" style="--i:5" id="note">
+      this is a demo, not a real account. pick an example or type your own. it's sorted right
+      here in your browser, so nothing you type is sent anywhere.
+    </p>
+  </div>
+</section>
+
+<!-- ==================================================================== swipe
+     Card view, on its own. Same gestures and the same clear moment as the app's
+     Deck.jsx: right done, left drop, down later, up skip. Its own sample stack, so
+     it works before the visitor has typed anything. -->
+<section class="band" id="swipe">
+  <div class="wrap sw">
+    <div class="copy">
+      <h2 class="rise">go through your list like a deck of cards.</h2>
+      <p class="say rise" style="--i:1">
+        one card at a time, so there's only ever one thing to decide. swipe it and the next
+        one is already there.
       </p>
-      <div class="cta rise" style="--i:3">
-        <a class="btn btn-primary app-link" href="#">open animus</a>
-        <a class="btn btn-ghost" href="#how">how it works</a>
-      </div>
-      <p class="cta-note rise" style="--i:4">there is no new app to remember to open. the capture surface is a chat that's already on your screen.</p>
+      <ul class="moves rise" style="--i:2" id="moves">
+        <li><button type="button" data-d="done"><i class="k k-done">→</i><span><b>swipe right: done</b>you finished it. you get a check and a small sound.</span></button></li>
+        <li><button type="button" data-d="snoozed"><i class="k">↓</i><span><b>swipe down: later</b>pick when it should come back. it's out of the way until then.</span></button></li>
+        <li><button type="button" data-d="dropped"><i class="k">←</i><span><b>swipe left: drop</b>you're not doing it after all. it's put aside, not deleted.</span></button></li>
+        <li><button type="button" data-d="skip"><i class="k">↑</i><span><b>swipe up: skip</b>not now. it goes to the back of the stack.</span></button></li>
+      </ul>
+      <p class="swhint rise" style="--i:3">drag the card, or tap a move above. on a keyboard, the arrow keys work too.</p>
     </div>
-  </section>
-
-  <!-- ======================================================== how -->
-  <section class="band" id="how">
-    <div class="wrap">
-      <div class="section-head rise">
-        <span class="label">how it works</span>
-        <h2>three steps, and you only do the first one.</h2>
-        <p>the whole job is eight seconds and one thumb. everything after that happens whether you show up or not.</p>
+    <div class="swstage rise" style="--i:2">
+      <div class="swtop"><b>today</b><span id="swCount"></span></div>
+      <div class="swdeck" id="swDeck" tabindex="0" aria-label="a stack of sample cards. arrow keys: right done, left drop, down later, up skip. z undoes."></div>
+      <div class="dacts" id="swActs">
+        <button type="button" class="sm" data-d="undo" disabled><i><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.500L2.500 7 6 10.500"/><path d="M3 7h6.500a3.500 3.500 0 0 1 0 7H8"/></svg></i>undo</button>
+        <button type="button" data-d="dropped"><i><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></i>drop</button>
+        <button type="button" data-d="snoozed"><i><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 4.8V8l2 1.5"/></svg></i>later</button>
+        <button type="button" class="pri" data-d="done"><i><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.4l3.2 3.4L13 4.5"/></svg></i>done</button>
+        <button type="button" class="sm" data-d="skip"><i><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3.500M4 7l4-4 4 4"/></svg></i>skip</button>
       </div>
-      <div class="steps">
-        <div class="card step rise" style="--i:0">
-          <div class="num">01</div>
-          <h3>send</h3>
-          <p>the moment it appears, before it's gone. a link, a sentence, “book dentist friday”. you don't choose a list, a project or a tag — you just send it.</p>
-        </div>
-        <div class="card step rise" style="--i:1">
-          <div class="num">02</div>
-          <h3>sorted</h3>
-          <p>claude reads it and works out what it is, titles it, dates it. links get opened and summarised. one line comes back so you know it landed. you file nothing.</p>
-        </div>
-        <div class="card step rise" style="--i:2">
-          <div class="num">03</div>
-          <h3>surfaced</h3>
-          <p>it comes back ranked by what's closest to rotting — so the deciding is already done. one tap for done, snooze, or drop.</p>
-        </div>
-      </div>
+      <div class="said" id="swSaid" role="status"></div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ======================================================== why it sticks
-       The conversion section. This audience has abandoned five of these already;
-       the objection is never "what does it do", it's "why would this one last".
-       Answer that before anything else. -->
-  <section class="band">
-    <div class="wrap">
-      <div class="section-head rise">
-        <span class="label">why this one sticks</span>
-        <h2>you've quit five of these. here's what was wrong with them.</h2>
+<!-- =================================================================== detail
+     The open item, laid out the way the desktop app shows it: the list on the
+     left, the item beside it, done / later / drop docked at the foot. Every
+     status move plays the app's sweep on the row it came from (wash.js). -->
+<section class="band" id="detail">
+  <div class="wrap">
+    <h2 class="rise">everything about one thing, in one place.</h2>
+    <p class="say rise" style="--i:1">
+      open anything in your list to add a note to yourself, change what kind of thing it is,
+      say how urgent it is, or give it a date. you can also see its history: when it came in,
+      and every time you put it off. it saves as you type.
+    </p>
+    <div class="edstage rise" style="--i:2">
+      <div class="edlist">
+        <div class="pane-top"><b>the pile</b><span class="sub" id="edSub">tap one to open it</span></div>
+        <div class="edrows" id="edRows"></div>
       </div>
-      <div class="steps">
-        <div class="card step rise" style="--i:0">
-          <div class="num" style="color:var(--faint)">they made you open them</div>
-          <h3>this one is already open</h3>
-          <p>every capture app asks you to stop, switch, and find it — which is exactly the four seconds the thought needed to survive. animus takes messages in a chat you're already in.</p>
-        </div>
-        <div class="card step rise" style="--i:1">
-          <div class="num" style="color:var(--faint)">they needed maintaining</div>
-          <h3>there's nothing to keep tidy</h3>
-          <p>no folders, no tags, no projects, no weekly review, no inbox to get to zero. nothing here can fall behind, because there's nothing here to keep up with.</p>
-        </div>
-        <div class="card step rise" style="--i:2">
-          <div class="num" style="color:var(--faint)">they punished you for leaving</div>
-          <h3>come back whenever</h3>
-          <p>disappear for three weeks and nothing is broken and nothing is shouting at you. the pile re-sorts itself and shows you the one thing worth doing first.</p>
-        </div>
-      </div>
+      <div class="ed" id="ed"></div>
     </div>
-  </section>
+    <p class="stage-note rise" style="--i:3">
+      a sample. edit anything, then press done, later or drop and watch where it goes.
+      on a keyboard, E, S and X do the same.
+    </p>
+  </div>
+</section>
 
-  <!-- ======================================================== catches -->
-  <section class="band">
-    <div class="wrap">
-      <div class="section-head rise">
-        <span class="label">what it catches</span>
-        <h2>you don't pick a category. it works that out.</h2>
-        <p>choosing where a thought goes is a decision, and the decision is where capture dies. so there isn't one.</p>
-      </div>
-      <div class="catches">
-        <span class="chip rise" style="--c:var(--t-idea);--i:0"><i></i>idea</span>
-        <span class="chip rise" style="--c:var(--t-link);--i:1"><i></i>link</span>
-        <span class="chip rise" style="--c:var(--t-task);--i:2"><i></i>task</span>
-        <span class="chip rise" style="--c:var(--t-goal);--i:3"><i></i>goal</span>
-        <span class="chip rise" style="--c:var(--t-reminder);--i:4"><i></i>reminder</span>
+<!-- ====================================================================== 02 -->
+<section class="band" id="back">
+  <div class="wrap ret">
+    <div class="copy">
+      <h2 class="rise">it reminds you, one thing at a time.</h2>
+      <p class="say rise" style="--i:1">
+        when something needs you, animus sends <em>one</em> item, around the time it matters.
+        never a long list, and never a count of what you haven't done.
+      </p>
+      <ul class="pts">
+        <li class="rise" style="--i:2"><i></i><span><b>answer it from the notification.</b> tap done or later right there. on Android it works without opening the app.</span></li>
+        <li class="rise" style="--i:3"><i></i><span><b>later means a time you pick.</b> the item disappears until then, and comes back by itself.</span></li>
+        <li class="rise" style="--i:4"><i></i><span><b>no app to install.</b> if you haven't added animus to your home screen, the reminder comes as a WhatsApp message instead.</span></li>
+      </ul>
+      <div class="act rise" style="--i:5">
+        <button class="ghost" id="ping"><span id="pingLbl">send one to the phone</span> <span aria-hidden="true">→</span></button>
+        <span class="hint" id="pingHint">then answer it without opening the app</span>
       </div>
     </div>
-  </section>
 
-  <!-- ======================================================== feed -->
-  <section class="band">
-    <div class="wrap split">
-      <div class="section-head rise" style="margin-bottom:0">
-        <span class="label">the feed</span>
-        <h2>the pile, in order of what's rotting.</h2>
-        <p>one list, already sorted. the thing most likely to be forgotten sits at the top, so opening the app never turns into twenty minutes of deciding what to do first.</p>
-      </div>
-      <div class="feed">
-        <div class="item rise" style="--c:var(--t-reminder);--i:0">
-          <i></i>
-          <div>
-            <strong>book dentist</strong>
-            <span>friday, before it becomes a root canal</span>
-            <div class="label meta">reminder · due in 2 days</div>
-          </div>
+    <div class="phone rise" style="--i:2">
+      <div class="screen">
+        <div class="sbar">
+          <span id="sbarTime">9:41</span>
+          <span class="bars" aria-hidden="true"><i style="height:4px"></i><i style="height:6px"></i><i style="height:8px"></i><i style="height:10px"></i></span>
+          <span class="bat" aria-hidden="true"></span>
         </div>
-        <div class="item rise" style="--c:var(--t-link);--i:1">
-          <i></i>
-          <div>
-            <strong>a tour of postgres locking</strong>
-            <span>why row-level locks bite under concurrent writes</span>
-            <div class="label meta">link · 11 min read</div>
-          </div>
+        <div class="lockclock">
+          <b id="clock">9:41</b>
+          <span id="lockdate">thursday, 6 november</span>
         </div>
-        <div class="item rise" style="--c:var(--t-idea);--i:2">
-          <i></i>
-          <div>
-            <strong>weekly digest of what you ignored</strong>
-            <span>show the pile you keep snoozing</span>
-            <div class="label meta">idea · captured tuesday</div>
-          </div>
-        </div>
+        <div class="notes" id="notes"></div>
+        <p class="waiting" id="waiting">nothing is waiting on you</p>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ======================================================== stat -->
-  <section class="band">
-    <div class="wrap">
-      <div class="section-head rise">
-        <span class="label">brain health</span>
-        <h2>one number for how much you're carrying.</h2>
-        <p>it dips when things sit and recovers the moment you clear them. it is never a grade, and it never guilts you — it just points at what to do next.</p>
+<!-- ====================================================================== 03
+     What you finished stays where you can see it. A sample, plus whatever the
+     visitor cleared or kept above. Topics are not sold in the copy: see
+     web/scripts/site-sky.mjs for the measurement that decided that. -->
+<section class="band" id="sky">
+  <div class="wrap">
+    <h2 class="rise">see what you got done.</h2>
+    <p class="say rise" style="--i:1">
+      everything you send shows up as a star, next to things like it. a star turns green
+      when you finish it. take a month off and nothing looks broken.
+    </p>
+    <div class="skyframe rise" style="--i:2">
+      <canvas id="skyc" role="img" aria-label="a night sky where each star is something you sent, coloured by whether it is done, waiting, snoozed or dropped. the same things are listed after this picture."></canvas>
+      <div class="skyhead">
+        <span class="label">your sky</span>
+        <b id="skyN"></b>
+        <p class="skysub">every star is something you sent animus. colour says where it stands.</p>
+        <div class="skykey" id="skyKey" aria-hidden="true"></div>
       </div>
-      <div class="card stat rise">
-        <div class="big" id="count" data-to="100">0</div>
-        <div class="cap">nothing is rotting.</div>
-        <div class="sub">the only nag you get, and it only ever asks for one thing.</div>
+      <button class="skyback" id="skyBack" type="button" hidden>whole sky</button>
+      <div class="skycap" id="skyCap" data-empty aria-live="polite"></div>
+    </div>
+    <ul class="sr" id="skyList"></ul>
+    <p class="skyhint rise" style="--i:3" id="skyHint">
+      this is a sample. anything you add in the demo above shows up here too, and turns green
+      when you mark it done. tap a group to zoom in, or a star to see what it is.
+    </p>
+  </div>
+</section>
+
+<!-- ====================================================================== 04 -->
+<section class="band">
+  <div class="wrap">
+    <h2 class="rise">why other apps didn't stick.</h2>
+    <div class="five">
+      <div class="r rise">
+        <div class="was"><i aria-hidden="true">✕</i><s>“just open the app and write it down”</s></div>
+        <div class="now">opening an app was the hard part.<span>by the time it loaded, the thought was gone. animus lives in WhatsApp, which is already open.</span></div>
+      </div>
+      <div class="r rise">
+        <div class="was"><i aria-hidden="true">✕</i><s>“set up your folders and tags first”</s></div>
+        <div class="now">you don't organise anything.<span>no folders, no projects, no weekly review. each thing is sorted as it arrives.</span></div>
+      </div>
+      <div class="r rise">
+        <div class="was"><i aria-hidden="true">✕</i><s>“don't break your streak!”</s></div>
+        <div class="now">taking a break costs nothing.<span>there's no streak to lose and no wall of overdue alerts waiting for you. if something is late, only that item says so.</span></div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ======================================================== limits -->
-  <!--
-    What it costs, said plainly, before anybody signs up.
-
-    Two rules from docs/DESIGN.md bind every word here and neither is stylistic:
-
-      · Describe the RULE, never the BALANCE. No "60 captures per 3 days" as a
-        headline number, no quota, no counter. A number that can run out is a
-        number to manage, and managing numbers is why this person abandoned the
-        last five tools. The mechanism is honest; it just isn't a scoreboard.
-      · Lead with what never stops. "capture is never limited" is the sentence
-        that makes the rest survivable, so it is the h2 and not a footnote.
-
-    Also deliberate: this says free, and it does NOT say free forever, and it
-    does not name a future price either. Promising permanence that hasn't been
-    costed is how a launch becomes a broken promise; naming a price before the
-    return trip is proven anchors it against half a product (docs/PRICING.md §6).
-    "while it's small" is true today and commits to nothing.
-  -->
-  <section class="band" id="limits">
-    <div class="wrap">
-      <div class="section-head rise">
-        <span class="label">what it costs</span>
-        <h2>free. capture is never limited.</h2>
-        <p>anything you send is saved the second it lands — no cap, no busy day, no exceptions. that part never changes.</p>
-      </div>
-      <div class="card rise" style="padding:28px">
-        <p style="margin:0 0 14px">what does have a limit is the <em>sorting</em>. when a lot arrives in a short stretch, some of it gets filed raw instead of tidied — still in your feed, still yours, still searchable. it picks back up on its own.</p>
-        <p style="margin:0;color:var(--muted)">animus is new and sorting costs real money per capture, so it's small on purpose. if it's full when you arrive, you'll go on a list and get a note when a place opens.</p>
-      </div>
+<section class="band close">
+  <div class="wrap">
+    <h2 class="rise">start with one thing.</h2>
+    <p class="say rise" style="--i:1">
+      it's free while it's small. sorting each message costs real money, so sign-ups are limited
+      for now. anything you send is always saved, even when a limit is hit.
+    </p>
+    <div class="cta rise" style="--i:2">
+      <a class="go app-link" href="#">open animus</a>
+      <a class="ghost" href="#top">back to the demo</a>
     </div>
-  </section>
+  </div>
+</section>
 
 </main>
 
@@ -402,87 +918,1951 @@ footer{border-top:1px solid var(--stroke);padding:72px 0 60px}
   <div class="wrap foot">
     <div>
       <a class="mark" href="#top"><i></i>animus</a>
-      <p>free while it's small, and small on purpose. questions — <a class="mail" href="mailto:adhokshaj.pande@gmail.com?subject=animus">adhokshaj.pande@gmail.com</a></p>
-      <p class="fine" style="margin-top:14px;max-width:44ch">animus is a place to put things, not a medical device. it doesn't diagnose or treat anything, and it isn't a substitute for care.</p>
+      <p>questions: <a class="mail" href="mailto:adhokshaj.pande@gmail.com?subject=animus">adhokshaj.pande@gmail.com</a></p>
     </div>
-    <div class="fine">built by adho &middot; <a href="./privacy.html">privacy</a></div>
+    <div class="fine">
+      animus is a place to put things. it doesn't diagnose or treat anything, and it isn't a
+      substitute for care.<br /><br />
+      prototype · built by adho · <a href="./privacy.html">privacy</a>
+    </div>
   </div>
 </footer>
 
 <script>
 (function () {
-  var APP = 'https://animus-jwui.onrender.com';
+'use strict';
+var $  = function (s, r) { return (r || document).querySelector(s); };
+var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+var APP = 'https://animus-jwui.onrender.com';
+var REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+var clamp = function (v, a, b) { return v < a ? a : v > b ? b : v; };
+var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) {
+  return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); };
 
-  // Point every CTA at the app.
-  var links = document.querySelectorAll('.app-link');
-  for (var i = 0; i < links.length; i++) links[i].href = APP;
+/* ===================================================================== theme */
+var root = document.documentElement;
+var THEMES = ['system', 'light', 'dark'];
+var ICON = {
+  system: '<g><rect x="3" y="4.5" width="18" height="12.5" rx="2.2"/>' +
+          '<path d="M9 20.5h6M12 17v3.5"/></g>',
+  light:  '<g><circle cx="12" cy="12" r="4.1"/>' +
+          '<path d="M12 2.6v2.1M12 19.3v2.1M4.4 4.4l1.5 1.5M18.1 18.1l1.5 1.5' +
+          'M2.6 12h2.1M19.3 12h2.1M4.4 19.6l1.5-1.5M18.1 5.9l1.5-1.5"/></g>',
+  dark:   '<g><path d="M20.4 14.3A8.6 8.6 0 0 1 9.7 3.6a8.6 8.6 0 1 0 10.7 10.7Z"/></g>'
+};
+var SAY = { system: 'theme: following your system', light: 'theme: light', dark: 'theme: dark' };
+var thBtn = $('#th');
+function applyTheme(pref, animate) {
+  var sys = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  if (animate && !REDUCE) { root.classList.add('xfade'); setTimeout(function(){ root.classList.remove('xfade'); }, 320); }
+  root.setAttribute('data-pref', pref);
+  root.setAttribute('data-theme', pref === 'system' ? sys : pref);
+  thBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICON[pref] + '</svg>';
+  thBtn.setAttribute('aria-label', SAY[pref] + '. tap to change');
+  thBtn.title = SAY[pref];
+}
+thBtn.addEventListener('click', function () {
+  var next = THEMES[(THEMES.indexOf(root.getAttribute('data-pref')) + 1) % 3];
+  try { localStorage.setItem('animus.theme', next); } catch (e) {}
+  applyTheme(next, true); sfx('tap'); haptic(4);
+});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+  if (root.getAttribute('data-pref') === 'system') applyTheme('system', true);
+});
+applyTheme(root.getAttribute('data-pref') || 'system', false);
 
-  // ---- wake the free Render instance while the visitor reads --------------
-  // Render's free tier sleeps after ~15 min idle and cold-starts in ~50s. If
-  // someone clicks through cold, they stare at a blank tab and leave. So we
-  // ping /health on page load: by the time they scroll and click, it's up.
-  // no-cors because we don't need the body, only the side effect.
-  var warm = false;
-  var warming = fetch(APP + '/health', { mode: 'no-cors', cache: 'no-store' })
-    .then(function () { warm = true; })
-    .catch(function () { warm = true; }); // never block the click on our own ping
+/* ===================================================================== sound
+   Short, dry, synthesized. Default OFF, remembered, created only inside a real
+   gesture, one visible control, never the only feedback, and NO hover sounds:
+   they fire constantly and on a page for people who overload easily they are
+   what gets the toggle switched off and left off. WCAG 1.4.2. */
+var AC = null, bus = null, nbuf = null, sndOn = false;
+try { sndOn = localStorage.getItem('animus.snd') === 'on'; } catch (e) {}
+function audioInit() {
+  if (AC) return;
+  var C = window.AudioContext || window.webkitAudioContext; if (!C) return;
+  AC = new C();
+  bus = AC.createGain(); bus.gain.value = 0.36; bus.connect(AC.destination);
+  var n = Math.floor(AC.sampleRate * 0.5), b = AC.createBuffer(1, n, AC.sampleRate), d = b.getChannelData(0);
+  for (var i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+  nbuf = b;
+}
+function noise(dur, f0, f1, peak, q, type) {
+  if (!AC || !nbuf) return;
+  var t = AC.currentTime, s = AC.createBufferSource(); s.buffer = nbuf;
+  s.playbackRate.value = 0.85 + Math.random() * 0.3;
+  var f = AC.createBiquadFilter(); f.type = type || 'bandpass'; f.Q.value = q || 1;
+  f.frequency.setValueAtTime(f0, t);
+  if (f1 !== f0) f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  var g = AC.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(peak, t + 0.003);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  s.connect(f); f.connect(g); g.connect(bus); s.start(t); s.stop(t + dur + 0.05);
+}
+function tone(freq, dur, peak, type) {
+  if (!AC) return;
+  var t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+  o.type = type || 'sine'; o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(peak, t + 0.005);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(bus); o.start(t); o.stop(t + dur + 0.05);
+}
+var SFX = {
+  tap:   function () { noise(0.02, 2500, 1200, 0.045, 1.2); },
+  key:   function () { noise(0.01, 3200, 1800, 0.014, 1.2); },
+  whoosh:function () { noise(0.17, 900, 2400, 0.045, 0.8); },
+  land:  function () { noise(0.05, 2600, 700, 0.07, 1.1); tone(150, 0.07, 0.03); },
+  reply: function () { noise(0.04, 1800, 900, 0.05, 1.2); tone(210, 0.09, 0.035); },
+  clear: function () { noise(0.19, 1600, 600, 0.05, 1); tone(96, 0.1, 0.04); },
+  open:  function () { noise(0.07, 700, 1700, 0.035, 0.9); },
+  shut:  function () { noise(0.06, 1500, 600, 0.03, 0.9); },
+  zzz:   function () { tone(300, 0.12, 0.03); setTimeout(function(){ tone(200, 0.14, 0.025); }, 90); },
+  nope:  function () { tone(90, 0.16, 0.055, 'triangle'); },
+  buzz:  function () { tone(48, 0.1, 0.09, 'triangle'); setTimeout(function(){ tone(56, 0.09, 0.06, 'triangle'); }, 95); },
+  tick:  function () { noise(0.012, 2200, 1500, 0.02, 1.4); }
+};
+function sfx(k) { if (sndOn && AC) { try { SFX[k](); } catch (e) {} } }
+var sndBtn = $('#snd'), sndLbl = $('#sndl');
+function paintSnd() { sndBtn.setAttribute('aria-pressed', sndOn ? 'true' : 'false'); sndLbl.textContent = sndOn ? 'sound on' : 'sound'; }
+paintSnd();
+sndBtn.addEventListener('click', function () {
+  sndOn = !sndOn;
+  try { localStorage.setItem('animus.snd', sndOn ? 'on' : 'off'); } catch (e) {}
+  if (sndOn) { audioInit(); if (AC && AC.state === 'suspended') AC.resume(); sfx('land'); }
+  paintSnd();
+});
+if (sndOn) {
+  var arm = function () { audioInit(); if (AC && AC.state === 'suspended') AC.resume();
+    removeEventListener('pointerdown', arm); removeEventListener('keydown', arm); };
+  addEventListener('pointerdown', arm); addEventListener('keydown', arm);
+}
+/* Chrome logs an error for every vibrate() before the frame is tapped. */
+function haptic(p) {
+  try {
+    if (!navigator.vibrate) return;
+    var ua = navigator.userActivation; if (ua && !ua.hasBeenActive) return;
+    navigator.vibrate(p);
+  } catch (e) {}
+}
 
-  // If they beat the wake-up, say so rather than opening a dead tab.
-  for (var j = 0; j < links.length; j++) {
-    links[j].addEventListener('click', function (e) {
-      if (warm) return;
-      e.preventDefault();
-      var el = e.currentTarget, was = el.textContent;
-      el.setAttribute('data-waking', '');
-      el.textContent = 'waking up…';
-      var go = function () { window.location.href = APP; };
-      warming.then(go);
-      setTimeout(go, 6000); // hard ceiling — never trap them here
-      setTimeout(function () { el.removeAttribute('data-waking'); el.textContent = was; }, 8000);
+/* =================================================================== reveals */
+var io = ('IntersectionObserver' in window) ? new IntersectionObserver(function (es) {
+  es.forEach(function (e) { if (!e.isIntersecting) return; e.target.classList.add('in'); io.unobserve(e.target); });
+}, { rootMargin: '0px 0px -6% 0px', threshold: 0.04 }) : null;
+$$('.rise').forEach(function (el) { io ? io.observe(el) : el.classList.add('in'); });
+
+/* ================================================================== previews
+   Mirrors lib/links.js + LinkPreview.jsx: a video thumbnail is a pure function
+   of the url, so it is derived rather than stored — which is why a video
+   captured before previews existed still renders one with no backfill. */
+function hostOf(u) { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } }
+function previewOf(url) {
+  if (!url) return null;
+  var host = hostOf(url), id = null;
+  try {
+    var u = new URL(url);
+    if (host === 'youtu.be') id = u.pathname.slice(1).split('/')[0];
+    else if (/youtube\.com$/.test(host)) {
+      if (u.pathname === '/watch') id = u.searchParams.get('v');
+      else { var m = u.pathname.match(/^\/(?:shorts|embed|live)\/([^/?#]+)/); if (m) id = m[1]; }
+    }
+  } catch (e) { return { kind: 'chip', site: host || 'link' }; }
+  if (id && /^[\w-]{6,15}$/.test(id)) {
+    return { kind: 'video', site: 'youtube', image: 'https://i.ytimg.com/vi/' + id + '/hqdefault.jpg' };
+  }
+  return { kind: 'chip', site: host || 'link' };
+}
+function previewHTML(it) {
+  var p = it.url ? previewOf(it.url) : null;
+  if (!p) return '';
+  var a = '<a class="prev" href="' + esc(it.url) + '" target="_blank" ' +
+          'rel="noreferrer nofollow" data-prev>';
+  if (p.kind === 'video') {
+    return a +
+      '<img class="shot" src="' + esc(p.image) + '" alt="" loading="lazy" data-shot />' +
+      '<span class="play"><i></i></span>' +
+      '<span class="cap"><span>' + esc(p.site) + '</span><em>open &#8599;</em></span></a>';
+  }
+  return a.replace('class="prev"', 'class="prev chip"') + '<span class="fv"></span>' +
+    '<span class="hs">' + esc(p.site) + '</span><span class="op">open &#8599;</span></a>';
+}
+/* A thumbnail that 404s becomes the chip, never a broken box. */
+function wirePreviews(scope) {
+  $$('[data-shot]', scope).forEach(function (img) {
+    img.addEventListener('error', function () {
+      var box = img.closest('[data-prev]'); if (!box) return;
+      box.className = 'prev chip';
+      box.innerHTML = '<span class="fv"></span><span class="hs">youtube</span><span class="op">open &#8599;</span>';
+    }, { once: true });
+  });
+}
+
+/* ===================================================================== parse
+   Local and honest. It deliberately does NOT call the real API: that needs
+   auth, costs ~Rs 0.07 a capture against a Rs 500 lifetime budget, could be
+   drained by a bot, and would make a CDN page depend on a sleeping Render
+   instance. The examples are hand-authored; free text runs the heuristic
+   below, which UNDER-splits rather than inventing a boundary it can't see. */
+var EXAMPLES = [
+  { b: 'a run-on',
+    x: "that thing about sleep debt i keep meaning to read https://example.com/sleep-debt also call the bank before friday, and maybe we should do a monthly reset thing",
+    i: [ { t:'the sleep debt piece', y:'link', m:'example.com \u00b7 9 min read', url:'https://example.com/sleep-debt' },
+         { t:'call the bank', y:'reminder', m:'friday', urg:3, due:'+2' },
+         { t:'a monthly reset thing', y:'idea', m:'no date' } ] },
+  { b: 'a video + a thought',
+    x: "watch this when i actually have ten minutes https://youtu.be/WhWc3b3KhnY and book the dentist, properly this time",
+    i: [ { t:'watch this when i have ten minutes', y:'link', m:'youtube \u00b7 8 min', url:'https://youtu.be/WhWc3b3KhnY' },
+         { t:'book the dentist', y:'reminder', m:'soon', urg:3, due:'+5' } ] },
+  { b: 'a brain dump',
+    x: "renew the passport\ndentist, properly this time, before it gets worse\nlearn enough spanish to order food by june\npay the electricity bill on the 20th",
+    i: [ { t:'renew the passport', y:'task', m:'no date' },
+         { t:'book the dentist', y:'reminder', m:'soon', urg:3 },
+         { t:'enough spanish to order food', y:'goal', m:'by june' },
+         { t:'pay the electricity bill', y:'reminder', m:'the 20th', due:'+9' } ] },
+  { b: 'one messy thought',
+    x: "ugh the landlord thing about the boiler i keep meaning to actually call him not just think about it this week",
+    i: [ { t:'call the landlord about the boiler', y:'task', m:'this week', urg:3 } ] }
+];
+var DATES = /\b(today|tonight|tomorrow|mon|tue|wed|thu|fri|sat|sun|monday|tuesday|wednesday|thursday|friday|saturday|sunday|this (?:week|weekend|month)|next (?:week|month|monday|friday)|by (?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*|before (?:the )?\d{1,2}|on the \d{1,2}(?:st|nd|rd|th)?|the \d{1,2}(?:st|nd|rd|th)|in \d+ days?|eod|asap)\b/i;
+var VERBS = /^(?:go |please )?(book|call|email|buy|send|fix|pay|renew|cancel|submit|file|check|collect|pick up|return|order|print|post|reply|text|ring|chase|confirm|register|upload|read|watch|clean|move|ask|sort|find)\b/i;
+var GOALS = /\b(learn|master|launch|ship|finish|get fit|save up|write a|build a|read all|get to|run a|enough \w+ to)\b/i;
+var IDEAS = /\b(maybe|what if|idea|we should|would be (?:nice|good)|consider|could we|thinking about|wonder if)\b/i;
+var URLRE = /https?:\/\/[^\s]+/i;
+function tidy(s) { return s.replace(/^\s*(?:and|also|oh|ugh|plus|then|btw)\b[\s,]*/i, '').replace(/\s+/g, ' ').trim(); }
+function mkTitle(s) {
+  var t = tidy(s).replace(URLRE, '').replace(/\s+/g, ' ').trim().replace(/^[\-–—,:;]+\s*/, '');
+  if (t.length > 46) t = t.slice(0, 44).replace(/\s+\S*$/, '') + '…';
+  return t || 'untitled';
+}
+function kindOf(s) {
+  if (URLRE.test(s)) return 'link';
+  if (IDEAS.test(s)) return 'idea';
+  if (GOALS.test(s)) return 'goal';
+  if (DATES.test(s)) return 'reminder';
+  if (VERBS.test(tidy(s))) return 'task';
+  return 'idea';
+}
+function parse(text) {
+  var out = [];
+  text.split(/\n+/).forEach(function (line) {
+    if (!tidy(line)) return;
+    line.split(/\s+(?:—|–)\s+also\s+|\s*;\s*|,?\s+and then\s+|\s+also,?\s+/i).forEach(function (p) {
+      if (tidy(p).split(/\s+/).length >= 2) out.push(p);
     });
-  }
+  });
+  if (!out.length && tidy(text)) out.push(text);
+  return out.slice(0, 6).map(function (p) {
+    var u = p.match(URLRE);
+    return { t: mkTitle(p), y: kindOf(p), url: u ? u[0] : null,
+             m: u ? hostOf(u[0]) : (p.match(DATES) || ['no date'])[0].toLowerCase() };
+  });
+}
 
-  // ---- entrance motion ---------------------------------------------------
-  var els = document.querySelectorAll('.rise');
-  if (!('IntersectionObserver' in window)) {
-    for (var k = 0; k < els.length; k++) els[k].classList.add('in');
+/* ================================================================ the stage */
+var thread = $('#thread'), msg = $('#msg'), sendBtn = $('#send'), pile = $('#pile'),
+    statusEl = $('#status'), clearedEl = $('#cleared'), noteEl = $('#note'),
+    pileSub = $('#pileSub'), zzEl = $('#zz'), saidEl = $('#said'), toSky = $('#toSky');
+var items = [], cleared = 0, sleeping = 0, busy = false, typingTimer = null, used = false,
+    uid = 0, burst = 0, view = 'list', skipN = 0, undoStack = [], combo = null, pilePaneEl = $('#pilePane');
+
+function now() {
+  var d = new Date();
+  return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+function scrollThread() { thread.scrollTop = thread.scrollHeight; }
+function byId(id) { for (var i = 0; i < items.length; i++) if (items[i].id === id) return items[i]; return null; }
+
+/* every field the real detail sheet can edit, seeded the way a capture seeds it */
+function mkItem(o) {
+  return { id: ++uid, b: burst, t: o.t, y: o.y, m: o.m, url: o.url || null, age: 0,
+           urg: o.urg || 2, due: o.due || '', note: '',
+           opened: 0, src: o.src || 'WhatsApp', seen: false, paid: false, skip: 0, star: null };
+}
+
+EXAMPLES.forEach(function (ex) {
+  var b = document.createElement('button');
+  b.className = 'try'; b.type = 'button'; b.textContent = ex.b;
+  b.addEventListener('click', function () { typeIn(ex); });
+  $('#tries').appendChild(b);
+});
+/* the examples type themselves in — watching the mess arrive is half of it */
+function typeIn(ex) {
+  if (busy) return;
+  if (typingTimer) { clearInterval(typingTimer); typingTimer = null; }
+  closeSheet();
+  msg.value = ''; msg.focus(); autosize();
+  if (REDUCE) { msg.value = ex.x; autosize(); send(ex); return; }
+  var i = 0;
+  typingTimer = setInterval(function () {
+    msg.value = ex.x.slice(0, ++i); autosize();
+    if (i % 3 === 0) sfx('key');
+    if (i >= ex.x.length) { clearInterval(typingTimer); typingTimer = null; send(ex); }
+  }, 11);
+}
+function autosize() { msg.style.height = 'auto'; msg.style.height = Math.min(110, msg.scrollHeight) + 'px'; }
+msg.addEventListener('input', autosize);
+msg.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(null); }
+});
+sendBtn.addEventListener('click', function () { send(null); });
+
+function send(ex) {
+  if (busy) return;
+  var text = (ex ? ex.x : msg.value).trim();
+  if (!text) { msg.focus(); return; }
+  busy = true; used = true; burst++;
+  msg.value = ''; autosize();
+
+  /* 1 — the message leaves */
+  var out = document.createElement('div');
+  out.className = 'bub out';
+  out.innerHTML = esc(text) + '<span class="stamp">' + now() +
+    ' <span class="tick" data-s="pending"></span></span>';
+  thread.appendChild(out); scrollThread();
+  sfx('whoosh'); haptic(6);
+  var tick = $('.tick', out);
+
+  var parsed = (ex ? ex.i : parse(text)).map(mkItem);
+
+  var T = REDUCE ? 0 : 1;
+  /* 2 — delivery ticks, then the typing indicator */
+  setTimeout(function () { tick.dataset.s = 'sent'; }, 220 * T);
+  setTimeout(function () { tick.dataset.s = 'delivered'; }, 520 * T);
+  setTimeout(function () {
+    if (REDUCE) return;
+    var ty = document.createElement('div');
+    ty.className = 'typing'; ty.id = 'typing';
+    ty.innerHTML = '<i></i><i></i><i></i>';
+    thread.appendChild(ty); scrollThread();
+    statusEl.textContent = 'sorting…';
+  }, 620 * T);
+
+  /* 3 — the items land in the pile, one at a time */
+  parsed.forEach(function (it, n) {
+    setTimeout(function () {
+      items.push(it); renderPile(true); sfx('land');
+      /* every item is a star from the moment it lands, and arrives blue */
+      skyAdd(it);
+    }, (900 + n * 220) * T);
+  });
+
+  /* 4 — one reply per burst, the way the product actually answers */
+  setTimeout(function () {
+    var ty = $('#typing'); if (ty) ty.remove();
+    statusEl.textContent = 'on WhatsApp';
+    var inb = document.createElement('div');
+    inb.className = 'bub in';
+    inb.innerHTML = esc(replyFor(parsed)) + '<span class="stamp">' + now() + '</span>';
+    thread.appendChild(inb); scrollThread();
+    tick.dataset.s = 'read';
+    sfx('reply'); haptic(8);
+    busy = false;
+    if (noteEl) noteEl.textContent = ex
+      ? 'that example was sorted by hand. the real app does this with AI, so it copes with messier messages too. tap an item to open it.'
+      : 'this demo sorts in your browser, so it\u2019s simpler than the real app, which uses AI. nothing you typed was sent anywhere. tap an item to open it.';
+  }, (900 + parsed.length * 220 + 260) * T);
+}
+
+/* The reply proves the parse by naming what it found. One message per burst,
+   which is how the product actually replies. */
+var an = function (w) { return (/^[aeiou]/i.test(w) ? 'an ' : 'a ') + w; };
+function replyFor(list) {
+  if (!list.length) return "saved. i couldn't sort that one, so it's in the pile as it came.";
+  if (list.length === 1) {
+    var o = list[0];
+    return 'saved ' + an(o.y) + (o.m && o.m !== 'no date' ? ', ' + o.m : '') + '. it’s in the pile.';
+  }
+  var counts = {};
+  list.forEach(function (o) { counts[o.y] = (counts[o.y] || 0) + 1; });
+  var parts = Object.keys(counts).map(function (k) {
+    return counts[k] > 1 ? counts[k] + ' ' + k + 's' : an(k);
+  });
+  var tail = parts.length > 1 ? parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1] : parts[0];
+  return 'sorted into ' + list.length + ': ' + tail + '. nothing for you to file.';
+}
+
+/* ------------------------------------------------------------------- the pile
+   Rot is age against what that kind of thing can survive: a reminder rots in a
+   week, an idea takes two months. Drawn as a hairline that grows, NEVER as a
+   colour that warns. */
+/* ── How the pile is ordered, and why there is no score in it ──────────────
+   The real feed is `created_at DESC` (routes/items.js) and nothing re-sorts it
+   on the client. An earlier version of this page invented a "closest to
+   rotting" ranking with a little hairline meter, which looked good and was a
+   lie: the thing you just sent would land halfway down because an older
+   reminder outranked it. Newest first, same as the app.
+
+   Age shows up the way the app shows it — as ItemCard's own chips. `going
+   stale` after a week with no date, `Nd overdue` past a due date. Per item,
+   never totalled. */
+var STALE_DAYS = 7;
+function ageText(it, extra) {
+  var d = (it.age || 0) + (extra || 0);
+  if (d < 1) return 'just now';
+  if (d === 1) return 'yesterday';
+  if (d < 14) return d + ' days ago';
+  return Math.round(d / 7) + ' weeks ago';
+}
+function dueIn(it, extra) {
+  if (!it.due || !/^\+\d+$/.test(it.due)) return null;
+  return parseInt(it.due.slice(1), 10) - (extra || 0);
+}
+/* ItemCard.jsx: overdue is hot, stale is quiet, and nothing counts them up. */
+function chipHTML(it, extra) {
+  var left = dueIn(it, extra), sat = (it.age || 0) + (extra || 0);
+  if (left !== null && left < 0) return '<span class="pill hot">' + (-left) + 'd overdue</span>';
+  if (left !== null && left === 0) return '<span class="pill hot">due today</span>';
+  if (left !== null) return '<span class="pill">due in ' + left + 'd</span>';
+  if (sat > STALE_DAYS) return '<span class="pill">going stale</span>';
+  return '';
+}
+function itemHTML(it) {
+  var chip = chipHTML(it, 0), fresh = it.seen ? '' : ' fresh';
+  it.seen = true;
+  return '<div class="item' + fresh + '" role="button" tabindex="0" data-id="' + it.id + '" style="--c:var(--t-' + it.y + ')">' +
+    '<span class="sq"></span>' +
+    '<span><span style="display:block"><h4>' + esc(it.t) + '</h4></span>' +
+    '<span class="meta">' +
+      '<span class="label">' + esc(it.y) + ' \u00b7 ' + esc(it.m) + (it.urg === 3 ? ' \u00b7 high' : '') + '</span>' +
+      '<span class="label" style="opacity:.6">' + ageText(it, 0) + '</span>' +
+    '</span>' +
+    previewHTML(it) +
+    (chip || it.note ? '<span class="tagrow">' + chip + (it.note ? '<span class="pill">note</span>' : '') + '</span>' : '') +
+    '</span></div>';
+}
+/* newest first — routes/items.js, created_at DESC. The newest BURST is on top;
+   inside a burst the items keep the order the reply named them in, because they
+   were all inserted in the same breath. */
+function ordered() {
+  return items.slice().sort(function (a, b) { return b.b - a.b || a.id - b.id; });
+}
+function renderPile(landed) {
+  pile.classList.toggle('decking', view === 'cards' && items.length > 0);
+  if (!items.length) {
+    pile.innerHTML = '<div class="empty">' + (used
+      ? '<b>all clear.</b>nothing is rotting. the pile keeps for whenever.'
+      : '<b>nothing here yet.</b>send something on the left and watch where it lands.') + '</div>';
+  } else if (view === 'cards') {
+    renderDeck();
   } else {
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        if (!en.isIntersecting) return;
-        en.target.classList.add('in');
-        io.unobserve(en.target);
+    pile.innerHTML = ordered().map(itemHTML).join('');
+    wirePreviews(pile);
+  }
+  pileSub.textContent = !items.length ? 'newest first'
+    : view === 'cards' ? 'swipe it, or tap to open' : 'tap one to open it';
+  zzEl.hidden = !sleeping;
+  zzEl.textContent = sleeping + ' sleeping, off the pile';
+  /* the thing you just sent has to be the thing you can see */
+  if (landed) pile.scrollTop = 0;
+}
+pile.addEventListener('click', function (e) {
+  /* the preview is a real link and wins — tapping a thumbnail opens the page,
+     not the item. Same as LinkPreview.jsx stopping the card's handler. */
+  if (e.target.closest('a.prev')) { sfx('tap'); return; }
+  var d = e.target.closest('[data-d]');
+  if (d) { deckAct(d.dataset.d); return; }
+  var card = e.target.closest('.item'); if (!card) return;
+  openSheet(+card.dataset.id);
+});
+/* a div with role=button has to carry its own keyboard */
+pile.addEventListener('keydown', function (e) {
+  if (e.target.closest('a.prev') || e.target.closest('[data-d]')) return;
+  if (view === 'cards') { deckKey(e); return; }
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  var card = e.target.closest('.item');
+  if (!card) return;
+  e.preventDefault();
+  openSheet(+card.dataset.id);
+});
+function removeItem(id, after) {
+  for (var i = 0; i < items.length; i++) if (items[i].id === id) { items.splice(i, 1); break; }
+  renderPile(); if (after) after();
+}
+
+/* ================================================================== the moment
+   lib/moment.js, wash.js and seal.js, in the page's own dialect. Most clears say
+   nothing, which is what lets the big ones land. The surprise is a pure function
+   of the id, so re-clearing can't re-roll, and a combo has no failure state. */
+function hash01(text, salt) {
+  var s = text + '|' + (salt || ''), h = 0x811c9dc5;
+  for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  h ^= h >>> 15; h = Math.imul(h, 0x2c1b3c6d); h ^= h >>> 12;
+  return (h >>> 0) / 4294967296;
+}
+var COMBO_MS = 180000, DOING = { task: 1, reminder: 1, goal: 1 };
+var SPELL = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+var SURPRISES = ['off your mind.', 'clean.', 'lighter.', 'and it’s gone.', 'out of your head.', 'nicely done.'];
+var STEPS = [0, 2, 4, 7, 9, 12, 14, 16];
+function momentFor(it, c) {
+  if (cleared === 0) return { tier: 'huge', line: 'your first star.' };
+  if (c >= 3) return { tier: 'big', line: (SPELL[c] || c) + ' in a row.' };
+  if (hash01(String(it.id) + it.t, 'surprise') < (DOING[it.y] ? 0.2 : 0.1)) {
+    return { tier: 'big', line: SURPRISES[Math.floor(hash01(String(it.id) + it.t, 'line') * SURPRISES.length)] };
+  }
+  if (c === 2) return { tier: 'small', line: 'two in a row.' };
+  return { tier: 'small', line: null };
+}
+var saidT = null;
+function say(line) {
+  if (!line) return;
+  saidEl.textContent = line; saidEl.classList.add('on');
+  clearTimeout(saidT);
+  saidT = setTimeout(function () { saidEl.classList.remove('on'); }, 1900);
+}
+
+var WASH_EASE = 'cubic-bezier(.65,0,.35,1)';
+var markSvg = function (size, body) {
+  return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 16 16" fill="none" stroke="currentColor" ' +
+    'stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + body + '</svg>';
+};
+var DRAW = ' pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"';
+/* each sweeps the way it swipes on a card. Lime is the reward, so only done has it. */
+var WASH = {
+  done: { bg: 'var(--accent)', ink: 'var(--on-accent)', from: 'inset(0 100% 0 0)', sweep: 340, hold: 620,
+          leave: 'translateY(-14px)', mark: markSvg(20, '<path class="wd" d="M3 8.4l3.2 3.4L13 4.5"' + DRAW + '/>') },
+  dropped: { bg: 'var(--wash-drop-bg)', ink: 'var(--wash-drop-ink)', from: 'inset(0 0 0 100%)', sweep: 300, hold: 560,
+          leave: 'translateX(-20px)', label: 'dropped',
+          mark: markSvg(15, '<path class="wd" d="M4 4l8 8"' + DRAW + '/><path class="wd" d="M12 4l-8 8"' + DRAW + '/>') },
+  snoozed: { bg: 'var(--wash-snooze-bg)', ink: 'var(--wash-snooze-ink)', from: 'inset(0 0 100% 0)', sweep: 340, hold: 760,
+          leave: 'translateY(14px)', mark: markSvg(15, '<circle cx="8" cy="8" r="6"/><path class="wh" d="M8 8V4.400"/>') }
+};
+/* Returns how long the row must stay, or 0 if nothing played. Decoration only. */
+function fireWash(row, kind, delay, label, scope) {
+  try {
+    if (REDUCE || !row || !row.animate) return 0;
+    var k = WASH[kind], box = row.getBoundingClientRect();
+    if (!box.width || box.bottom < 0 || box.top > innerHeight) return 0;
+    var pb = (scope || pile).getBoundingClientRect();
+    if (box.top < pb.top || box.bottom > pb.bottom + 1) return 0; /* scrolled out of the pane */
+    var w = document.createElement('div');
+    w.setAttribute('aria-hidden', 'true');
+    w.style.cssText = 'position:fixed;overflow:hidden;pointer-events:none;z-index:35;border-radius:16px;' +
+      'left:' + box.left + 'px;top:' + box.top + 'px;width:' + box.width + 'px;height:' + box.height + 'px;';
+    w.style.background = k.bg; w.style.color = k.ink; w.style.clipPath = k.from;
+    w.style.setProperty('--wash-ink', k.ink);
+    var copy = row.cloneNode(true);
+    copy.classList.remove('fresh'); copy.classList.add('wash-copy');
+    copy.removeAttribute('data-id'); copy.removeAttribute('tabindex'); copy.removeAttribute('role');
+    copy.style.cssText += ';height:100%;margin:0;transform:none';
+    w.appendChild(copy);
+    var text = label || k.label;
+    var tag = document.createElement('div');
+    tag.style.cssText = 'position:absolute;right:14px;display:flex;align-items:center;gap:6px;font-size:12.5px;' +
+      'font-weight:600;line-height:1;' + (text ? 'bottom:12px;padding:4px 0 4px 8px;border-radius:999px;background:' + k.bg : 'top:calc(50% - 10px)');
+    tag.innerHTML = (text ? '<span>' + esc(text) + '</span>' : '') + k.mark;
+    w.appendChild(tag);
+    document.body.appendChild(w);
+    var at = delay + k.sweep - 60;
+    w.animate([{ clipPath: k.from }, { clipPath: 'inset(0 0% 0% 0%)' }], { duration: k.sweep, delay: delay, easing: WASH_EASE, fill: 'both' });
+    $$('.wd', tag).forEach(function (p, i) {
+      p.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: 200, delay: at + i * 70, easing: 'ease-out', fill: 'both' });
+    });
+    var hand = $('.wh', tag);
+    if (hand) {
+      hand.style.transformOrigin = '8px 8px';
+      hand.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], { duration: 520, delay: at, easing: 'cubic-bezier(.45,0,.25,1)', fill: 'both' });
+    }
+    var end = delay + k.hold;
+    w.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: k.leave }], { duration: 260, delay: end, easing: 'ease-in', fill: 'both' })
+      .onfinish = function () { w.remove(); };
+    return end;
+  } catch (e) { return 0; }
+}
+/* one seal with a ripple, for a clear with no row to sweep: a thrown card. */
+function fireSeal(x, y, tier) {
+  try {
+    var big = matchMedia('(min-width: 1024px)').matches;
+    var disc = big ? 72 : 56, chk = big ? 34 : 27, rings = big ? [1.85, 2.45, 3] : [1.7, 2.15, 2.6];
+    var seal = document.createElement('div');
+    seal.setAttribute('aria-hidden', 'true');
+    seal.style.cssText = 'position:fixed;pointer-events:none;z-index:70;width:' + disc + 'px;height:' + disc + 'px;' +
+      'left:' + (x - disc / 2) + 'px;top:' + (y - disc / 2) + 'px;';
+    var d = document.createElement('div');
+    d.style.cssText = 'position:absolute;inset:0;border-radius:999px;background:var(--accent);color:var(--on-accent);' +
+      'box-shadow:var(--card);display:flex;align-items:center;justify-content:center;';
+    d.innerHTML = markSvg(chk, '<path d="M3 8.4l3.2 3.4L13 4.5"' + DRAW + '/>');
+    seal.appendChild(d); document.body.appendChild(seal);
+    var check = $('path', d);
+    if (REDUCE || !d.animate) {
+      check.setAttribute('stroke-dashoffset', '0');
+      setTimeout(function () { seal.remove(); }, 700);
+      return;
+    }
+    d.animate([
+      { opacity: 0, transform: 'scale(.6)', easing: 'cubic-bezier(.22,1,.36,1)' },
+      { opacity: 1, transform: 'scale(1)', offset: .26 },
+      { opacity: 1, transform: 'scale(1)', offset: .76, easing: 'ease-in' },
+      { opacity: 0, transform: 'scale(.97)' } ], { duration: 920, fill: 'forwards' });
+    check.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: 280, delay: 130, easing: 'ease-out', fill: 'forwards' });
+    rings.slice(0, tier === 'small' ? 2 : 3).forEach(function (to, i) {
+      var r = document.createElement('div');
+      r.style.cssText = 'position:absolute;inset:0;border-radius:999px;border:1.5px solid var(--accent-ink);opacity:0;';
+      seal.insertBefore(r, d);
+      r.animate([
+        { opacity: .85 - i * .2, transform: 'scale(1)' },
+        { opacity: .32 - i * .07, transform: 'scale(' + (to * .8) + ')', offset: .6 },
+        { opacity: 0, transform: 'scale(' + to + ')' } ],
+        { duration: 820, delay: 150 + i * 120, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'both' });
+    });
+    setTimeout(function () { seal.remove(); }, 1500);
+  } catch (e) {}
+}
+
+/* Every status move goes through here, so a clear can't differ by where it came from. */
+function moveItem(id, kind, o) {
+  o = o || {};
+  var it = byId(id); if (!it || it.moving) return;
+  it.moving = true;
+  var row = view === 'list' ? $('.item[data-id="' + id + '"]', pile) : null;
+  var hold = fireWash(row, kind, o.delay || 0, o.label);
+  if (kind === 'done') {
+    var t = Date.now();
+    combo = { n: combo && t - combo.at <= COMBO_MS ? combo.n + 1 : 1, at: t };
+    var m = momentFor(it, combo.n);
+    sfx('clear'); haptic([8, 24, 10]);
+    if (AC && sndOn) { try { tone(440 * Math.pow(2, STEPS[Math.min(combo.n - 1, 7)] / 12), .22, .035); } catch (e) {} }
+    say(m.line);
+    if (!hold && !o.silent) {
+      var at = o.at, pb = pile.getBoundingClientRect();
+      fireSeal(at ? at.x : pb.left + pb.width / 2, at ? at.y : pb.top + pb.height / 2, m.tier);
+    }
+  } else if (kind === 'dropped') { haptic(8); }
+  else { haptic([6, 40, 6]); sleeping++; }
+  var done = function () {
+    it.moving = false;
+    removeItem(id, function () {
+      if (kind === 'done') finish(it);
+      if (kind === 'dropped' || kind === 'snoozed') skySet(it, kind);
+      if (o.after) o.after();
+    });
+  };
+  if (o.undoable) undoStack.push({ it: it, kind: kind });
+  if (hold) setTimeout(done, hold); else done();
+}
+
+/* monotonic — it only ever goes up, and undoing a misfire doesn't take it back.
+   docs/DESIGN.md copy rule 2. */
+function finish(it) {
+  if (it.paid) return;
+  it.paid = true; cleared++;
+  skySet(it, 'done');
+  toSky.hidden = false;
+  var from = +clearedEl.textContent || 0, target = cleared, t0 = performance.now();
+  if (REDUCE) { clearedEl.textContent = target; return; }
+  (function tickf(t) {
+    var p = clamp((t - t0) / 420, 0, 1), e = 1 - Math.pow(1 - p, 3);
+    clearedEl.textContent = Math.round(from + (target - from) * e);
+    if (p < 1) requestAnimationFrame(tickf);
+  })(t0);
+  /* rAF is paused in a background tab and the count would stall partway. */
+  setTimeout(function () { if (+clearedEl.textContent < target) clearedEl.textContent = target; }, 520);
+}
+
+/* ==================================================================== the deck
+   Deck.jsx: right done, left drop, down snooze, up skip, undo. Up is session-only
+   and records nothing, because a stack demanding a verdict on every card is the
+   app inserting a decision. Deliberately no "4 of 19". Down asks when before it
+   flies, because a snooze with no time is the bug that feature was built to fix. */
+var THROW_AT = 84, FLICK_AT = 620;
+var DWORD = { done: 'done', dropped: 'drop', snoozed: 'later', skip: 'skip' };
+function deckList() {
+  return ordered().filter(function (i) { return !i.moving; })
+    .sort(function (a, b) { return a.skip - b.skip; });
+}
+function dcardHTML(it, depth) {
+  var chip = chipHTML(it, 0);
+  return '<div class="dcard"' + (depth ? '' : ' data-top') + ' data-card="' + it.id + '" style="--c:var(--t-' + it.y + ');z-index:' + (3 - depth) + ';' +
+      'transform:translate3d(0,' + (depth * 9) + 'px,0) scale(' + (1 - depth * .035) + ');' + (depth ? 'opacity:' + (1 - depth * .25) : '') + '">' +
+    '<span class="dword" aria-hidden="true"></span>' +
+    '<span class="dtop"><span class="sq"></span><span class="label">' + esc(it.y) + (it.m && it.m !== 'no date' ? ' · ' + esc(it.m) : '') + '</span>' +
+      '<span class="label dage">' + ageText(it, 0) + '</span></span>' +
+    '<h4>' + esc(it.t) + '</h4>' +
+    (depth ? '' : previewHTML(it)) +
+    (chip && !depth ? '<span>' + chip + '</span>' : '') + '</div>';
+}
+var ICO = {
+  x: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>',
+  clock: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 4.8V8l2 1.5"/></svg>',
+  ok: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.4l3.2 3.4L13 4.5"/></svg>',
+  up: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3.500M4 7l4-4 4 4"/></svg>',
+  back: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.500L2.500 7 6 10.500"/><path d="M3 7h6.500a3.500 3.500 0 0 1 0 7H8"/></svg>'
+};
+function renderDeck() {
+  var list = deckList();
+  pile.innerHTML = '<div class="deck" id="deck" tabindex="0" aria-label="the pile, one card at a time. arrow keys: right done, left drop, down later, up skip. z undoes.">' +
+    '<div class="dstack">' + list.slice(0, 3).reverse().map(function (it) {
+      return dcardHTML(it, list.indexOf(it)); }).join('') + '</div>' +
+    '<div class="dacts">' +
+      '<button type="button" class="sm" data-d="undo"' + (undoStack.length ? '' : ' disabled') + '><i>' + ICO.back + '</i>undo</button>' +
+      '<button type="button" data-d="dropped"><i>' + ICO.x + '</i>drop</button>' +
+      '<button type="button" data-d="snoozed"><i>' + ICO.clock + '</i>later</button>' +
+      '<button type="button" class="pri" data-d="done"><i>' + ICO.ok + '</i>done</button>' +
+      '<button type="button" class="sm" data-d="skip"><i>' + ICO.up + '</i>skip</button>' +
+    '</div></div>';
+  wirePreviews(pile);
+  var top = $('[data-top]', pile);
+  if (top) wireCard(top);
+}
+function topCard() { return $('[data-top]', pile); }
+function throwCard(kind) {
+  var c = topCard(); if (!c) return;
+  var id = +c.dataset.card, it = byId(id); if (!it) return;
+  if (kind === 'snoozed') {
+    c.style.transition = ''; c.style.transform = '';
+    openSheet(id, true); sfx('tap');
+    return;
+  }
+  var box = c.getBoundingClientRect();
+  var at = { x: box.left + box.width / 2, y: box.top + box.height / 2 };
+  var dx = kind === 'done' ? 1 : kind === 'dropped' ? -1 : 0, dy = kind === 'skip' ? -1 : 0;
+  c.style.transition = REDUCE ? 'none' : 'transform .3s cubic-bezier(.3,0,.7,1),opacity .3s';
+  c.style.transform = 'translate3d(' + (dx * 620) + 'px,' + (dy * 460) + 'px,0) rotate(' + (dx * 18) + 'deg)';
+  c.style.opacity = '0';
+  c.style.pointerEvents = 'none';
+  if (kind === 'skip') {
+    sfx('tap');
+    setTimeout(function () { it.skip = ++skipN; renderPile(); keepFocus(); }, REDUCE ? 0 : 200);
+    return;
+  }
+  setTimeout(function () {
+    moveItem(id, kind, { undoable: true, at: at, after: keepFocus });
+  }, REDUCE ? 0 : 130);
+}
+function keepFocus() { var d = $('#deck'); if (d && pendingFocus) d.focus({ preventScroll: true }); pendingFocus = false; }
+var pendingFocus = false;
+function undo() {
+  var u = undoStack.pop(); if (!u) return;
+  if (u.kind === 'snoozed') sleeping = Math.max(0, sleeping - 1);
+  if (u.kind !== 'done') skySet(u.it, 'pending');
+  u.it.moving = false; u.it.skip = 0;
+  items.push(u.it);
+  sfx('shut'); haptic(5);
+  renderPile();
+}
+function deckAct(a) {
+  if (a === 'undo') { undo(); return; }
+  throwCard(a);
+}
+function deckKey(e) {
+  var k = { ArrowRight: 'done', ArrowLeft: 'dropped', ArrowDown: 'snoozed', ArrowUp: 'skip' }[e.key];
+  if (k) { e.preventDefault(); pendingFocus = true; throwCard(k); return; }
+  if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); pendingFocus = true; undo(); keepFocus(); return; }
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); var c = topCard(); if (c) openSheet(+c.dataset.card); }
+}
+function wireCard(c) {
+  var pid = null, sx = 0, sy = 0, dx = 0, dy = 0, t0 = 0, moved = false, word = $('.dword', c);
+  var dirOf = function () {
+    if (Math.abs(dx) >= Math.abs(dy)) return dx > 0 ? 'done' : 'dropped';
+    return dy > 0 ? 'snoozed' : 'skip';
+  };
+  c.addEventListener('pointerdown', function (e) {
+    if (e.target.closest('a.prev')) return;
+    pid = e.pointerId; sx = e.clientX; sy = e.clientY; dx = dy = 0; moved = false; t0 = performance.now();
+    try { c.setPointerCapture(pid); } catch (err) {}
+    c.style.transition = 'none';
+  });
+  c.addEventListener('pointermove', function (e) {
+    if (e.pointerId !== pid) return;
+    dx = e.clientX - sx; dy = e.clientY - sy;
+    var d = Math.hypot(dx, dy);
+    if (d > 6) moved = true;
+    if (!moved) return;
+    c.style.transform = 'translate3d(' + dx + 'px,' + dy + 'px,0) rotate(' + (dx * .05) + 'deg)';
+    var k = dirOf();
+    word.textContent = DWORD[k]; word.dataset.k = k;
+    word.style.opacity = clamp((d - 16) / (THROW_AT - 16), 0, 1);
+  });
+  var end = function (e) {
+    if (e.pointerId !== pid) return;
+    pid = null;
+    var d = Math.hypot(dx, dy), speed = d / Math.max(1, performance.now() - t0) * 1000;
+    if (e.type === 'pointerup' && !moved) { c.style.transition = ''; openSheet(+c.dataset.card); return; }
+    if (e.type === 'pointerup' && (d > THROW_AT || (speed > FLICK_AT && d > 28))) { throwCard(dirOf()); return; }
+    c.style.transition = ''; c.style.transform = ''; word.style.opacity = 0;
+  };
+  c.addEventListener('pointerup', end);
+  c.addEventListener('pointercancel', end);
+}
+function setView(v) {
+  if (view === v) return;
+  view = v; closeSheet();
+  $('#vList').setAttribute('aria-pressed', v === 'list');
+  $('#vCards').setAttribute('aria-pressed', v === 'cards');
+  sfx('tap'); renderPile();
+}
+$('#vList').addEventListener('click', function () { setView('list'); });
+$('#vCards').addEventListener('click', function () { setView('cards'); });
+
+/* ============================================================== the editor
+   The real sheet is where everything is editable. Status moves leave the
+   pile; field edits update in place — which is why editing a note doesn't
+   make the card disappear behind the sheet you are typing into. */
+var sheet = $('#sheet'), sheetBody = $('#sheetBody'), sheetBar = $('#sheetBar'), scrim = $('#scrim');
+var TYPES = ['idea', 'link', 'task', 'goal', 'reminder'];
+var URG = [[1, 'low'], [2, 'normal'], [3, 'high']];
+/* SnoozeMenu.jsx, preset for preset: each carries the clock time it resolves
+   to, 'this evening' only exists before 5pm, 'someday' is a real snooze with
+   NO wake time, and the reason is optional and load-bearing — the
+   snooze_returned rule hands it straight back to you when the item comes up. */
+function atHour(d, h) { var x = new Date(d); x.setHours(h, 0, 0, 0); return x; }
+function hint(at) {
+  if (!at) return 'no date. you fetch it';
+  var today = new Date().toDateString() === at.toDateString();
+  /* minutes always. SnoozeMenu.jsx drops them on the hour, which reads as
+     "Thu 09" in any 24-hour locale rather than "Thu 9 am" — worth fixing there
+     too. */
+  var t = at.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  return today ? t : at.toLocaleDateString(undefined, { weekday: 'short' }) + ' ' + t;
+}
+function snoozePresets() {
+  var n = new Date(), d = n.getDay(), out = [];
+  out.push({ k: 'in 3 hours', at: new Date(Date.now() + 3 * 3600000) });
+  if (n.getHours() < 17) out.push({ k: 'this evening', at: atHour(n, 18) });
+  out.push({ k: 'tomorrow', at: atHour(new Date(Date.now() + 86400000), 9) });
+  var sat = new Date(n), toSat = (6 - d + 7) % 7 || 7;
+  sat.setDate(sat.getDate() + toSat); out.push({ k: 'this weekend', at: atHour(sat, 9) });
+  var mon = new Date(n), toMon = (1 - d + 7) % 7 || 7;
+  mon.setDate(mon.getDate() + toMon); out.push({ k: 'next week', at: atHour(mon, 9) });
+  out.push({ k: 'someday', at: null });
+  return out;
+}
+var openId = null, snoozeMode = false;
+
+function sheetHTML(it) {
+  return '<div class="head" style="--c:var(--t-' + it.y + ')">' +
+      '<span class="sq"></span><span class="label" style="color:var(--t-' + it.y + ')">' + esc(it.y) + '</span>' +
+      '<button class="shut" id="shut" aria-label="close">&times;</button></div>' +
+    '<textarea class="ttl" id="fTitle" rows="1" aria-label="title">' + esc(it.t) + '</textarea>' +
+    previewHTML(it) +
+    '<div class="fld"><span class="label">type</span><div class="chips" id="fType">' +
+      TYPES.map(function (t) {
+        return '<button class="chip" type="button" data-v="' + t + '" style="--c:var(--t-' + t + ')"' +
+          ' aria-pressed="' + (t === it.y) + '"><i></i>' + t + '</button>'; }).join('') +
+    '</div></div>' +
+    '<div class="fld"><span class="label">urgency</span><div class="urg" id="fUrg">' +
+      URG.map(function (u) {
+        return '<button type="button" data-v="' + u[0] + '" aria-pressed="' + (u[0] === it.urg) + '">' + u[1] + '</button>';
+      }).join('') +
+    '</div></div>' +
+    '<div class="fld"><span class="label">due date</span><div class="dt">' +
+      '<input type="date" id="fDue" value="' + esc(dueValue(it)) + '" />' +
+      '<button class="clr" type="button" id="fDueClear">clear</button></div></div>' +
+    '<div class="fld"><span class="label">note to self</span>' +
+      '<textarea class="selfnote" id="fNote" placeholder="why this matters, what ‘done’ looks like, why it’s due when it is…">' + esc(it.note) + '</textarea></div>' +
+    '<div class="facts">' +
+      '<div><span class="label">captured</span><b>' + esc(it.src) + '</b></div>' +
+      '<div><span class="label">last opened</span><b>' + (it.opened ? 'just now' : 'never') + '</b></div>' +
+      '<div><span class="label">opened</span><b>' + it.opened + '×</b></div>' +
+    '</div>' +
+    '<ul class="hist"><li><i></i><span>captured · <em>' + esc(it.src) +
+      (it.url ? ' · with a link' : '') + '</em></span></li>' +
+      (it.opened > 1 ? '<li><i style="background:var(--muted)"></i><span>opened · <em>' + it.opened + ' times</em></span></li>' : '') +
+    '</ul>' +
+    '<div class="del"><p>delete permanently. this one can’t be undone.</p>' +
+      '<button class="hold" id="fDel" type="button"><span>hold to delete</span></button></div>';
+}
+function dueValue(it) {
+  if (!it.due) return '';
+  if (/^\+\d+$/.test(it.due)) {
+    var d = new Date(Date.now() + parseInt(it.due.slice(1), 10) * 86400000);
+    return d.toISOString().slice(0, 10);
+  }
+  return it.due;
+}
+function barHTML() {
+  if (snoozeMode) {
+    return '<div style="flex:1">' +
+      '<div class="snoozehead"><span class="label">snooze until</span>' +
+        '<button class="cancel" type="button" data-act="cancel">cancel</button></div>' +
+      '<div class="snooze" id="fSnooze">' + snoozePresets().map(function (s) {
+        return '<button type="button" data-v="' + esc(s.k) + '"><b>' + s.k + '</b>' +
+               '<em>' + esc(hint(s.at)) + '</em></button>'; }).join('') + '</div>' +
+      '<input class="why" id="fWhy" maxlength="80" ' +
+        'placeholder="why later? waiting on the invoice \u00b7 no energy for it tonight" />' +
+      '<p class="whynote">optional. whatever you write comes back with the item. ' +
+        'the real sheet has a date picker here too.</p>' +
+    '</div>';
+  }
+  return '<button class="pri" data-act="done">done</button>' +
+         '<button data-act="snooze">snooze</button>' +
+         '<button data-act="drop">drop</button>';
+}
+function openSheet(id, asSnooze) {
+  var it = byId(id); if (!it) return;
+  it.opened++;
+  openId = id; snoozeMode = !!asSnooze;
+  paintSheet();
+  sheet.classList.add('on'); sheet.setAttribute('aria-hidden', 'false');
+  scrim.classList.add('on');
+  sfx('open'); haptic(5);
+  setTimeout(function () { var t = $('#fTitle'); if (t) grow(t); }, 30);
+}
+function paintSheet() {
+  var it = byId(openId); if (!it) return;
+  sheetBody.innerHTML = sheetHTML(it);
+  sheetBar.innerHTML = barHTML();
+  wirePreviews(sheetBody);
+  var t = $('#fTitle'); if (t) grow(t);
+}
+function grow(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+function closeSheet() {
+  if (openId === null) return;
+  openId = null; snoozeMode = false;
+  sheet.classList.remove('on'); sheet.setAttribute('aria-hidden', 'true');
+  scrim.classList.remove('on');
+  sfx('shut');
+}
+scrim.addEventListener('click', closeSheet);
+addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSheet(); });
+
+/* Field edits go straight in and re-render the card underneath. Only the
+   STATUS actions remove it from the pile. */
+sheetBody.addEventListener('click', function (e) {
+  var it = byId(openId); if (!it) return;
+  var t = e.target;
+  if (t.closest('#shut')) { closeSheet(); return; }
+  var chip = t.closest('#fType button');
+  if (chip) { it.y = chip.dataset.v; sfx('tap'); haptic(4); paintSheet(); renderPile(); return; }
+  var urg = t.closest('#fUrg button');
+  if (urg) { it.urg = +urg.dataset.v; sfx('tap'); haptic(4); paintSheet(); renderPile(); return; }
+  if (t.closest('#fDueClear')) { it.due = ''; it.m = 'no date'; paintSheet(); renderPile(); return; }
+});
+sheetBody.addEventListener('input', function (e) {
+  var it = byId(openId); if (!it) return;
+  if (e.target.id === 'fTitle') { it.t = e.target.value.replace(/\n/g, ' ').slice(0, 120) || 'untitled'; grow(e.target); renderPile(); }
+  if (e.target.id === 'fNote')  { it.note = e.target.value.slice(0, 400); renderPile(); }
+  if (e.target.id === 'fDue')   {
+    it.due = e.target.value;
+    it.m = e.target.value ? new Date(e.target.value + 'T12:00:00')
+      .toLocaleDateString(undefined, { day: 'numeric', month: 'short' }).toLowerCase() : 'no date';
+    renderPile();
+  }
+});
+sheetBody.addEventListener('keydown', function (e) {
+  var it = byId(openId); if (!it) return;
+  if (e.target.id === 'fTitle' && e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+});
+
+/* hold to delete — ~850ms, aborted by lifting off. A tap-through confirm gets
+   dismissed on autopilot; a hold can't be done by reflex. */
+var holdT = null;
+function holdStart(btn) {
+  btn.classList.add('arm'); haptic(10); sfx('tick');
+  holdT = setTimeout(function () {
+    holdT = null; btn.classList.remove('arm');
+    var id = openId; closeSheet();
+    sfx('nope'); haptic([14, 30, 40]);
+    var gone = byId(id);
+    removeItem(id, function () { if (gone) skyRemove(gone); });
+  }, 850);
+  setTimeout(function () { if (holdT) haptic(8); }, 430);
+}
+function holdStop(btn) { if (holdT) { clearTimeout(holdT); holdT = null; } btn.classList.remove('arm'); }
+sheetBody.addEventListener('pointerdown', function (e) {
+  var b = e.target.closest('#fDel'); if (!b) return;
+  e.preventDefault(); holdStart(b);
+});
+['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev) {
+  sheetBody.addEventListener(ev, function (e) {
+    var b = e.target.closest('#fDel'); if (b) holdStop(b);
+  });
+});
+
+sheetBar.addEventListener('click', function (e) {
+  var it = byId(openId); if (!it) return;
+  var s = e.target.closest('#fSnooze button');
+  if (s) {
+    var id = openId, when = s.dataset.v;
+    var whyEl = $('#fWhy'), why = whyEl ? whyEl.value.trim() : '';
+    closeSheet();
+    moveItem(id, 'snoozed', { delay: 240, label: when === 'someday' ? 'someday' : when, undoable: view === 'cards', after: function () {
+      noteEl.textContent = when === 'someday'
+        ? 'put away with no date. it stays in your archive until you go back for it.'
+        : 'gone until ' + when + ', then it comes back on its own. ' +
+          (why ? 'your note comes back with it: \u201c' + why + '\u201d.'
+               : 'if you write a reason, it comes back with the item.');
+    } });
+    return;
+  }
+  var b = e.target.closest('[data-act]'); if (!b) return;
+  var act = b.dataset.act, cid = openId;
+  if (act === 'cancel') { snoozeMode = false; sheetBar.innerHTML = barHTML(); sfx('shut'); return; }
+  if (act === 'snooze') { snoozeMode = true; sheetBar.innerHTML = barHTML(); sfx('tap'); return; }
+  closeSheet();
+  moveItem(cid, act === 'done' ? 'done' : 'dropped', { delay: 240, undoable: view === 'cards' });
+});
+
+/* ================================================================== the ping
+   Fires itself the first time the section is seen. A button nobody knows to
+   press proves nothing — once they have watched it happen, the button is a
+   replay and the affordance is obvious. */
+var pingBtn = $('#ping'), pingLbl = $('#pingLbl'), pingHint = $('#pingHint'),
+    notes = $('#notes'), waiting = $('#waiting'), clock = $('#clock'),
+    sbarTime = $('#sbarTime'), lockdate = $('#lockdate');
+/* nudge-copy.js: each rule ships a PAIR of buttons and they differ per rule —
+   that variety is the whole reason the free-form path exists. A real
+   notification carries exactly two, so this does too. An earlier version had a
+   'later' that unfolded into four durations; notifications can't do that. */
+var PINGS = [
+  { line: 'still worth doing, or has it passed?', a: ['done', 'done'], b: ['not now', 'snooze:2'] },
+  { line: 'this has been sitting a while. want it gone?', a: ['let it go', 'drop'], b: ['the weekend', 'snooze:72'] },
+  { line: 'two minutes would clear this.', a: ['done', 'done'], b: ['tonight', 'snooze:6'] },
+  { line: 'you put this off once. same again, or finish it?', a: ['done', 'done'], b: ['tomorrow', 'snooze:24'] },
+  { line: 'saved a while back. still want to read it?', a: ['read it', 'open'], b: ['someday', 'snooze:0'] }
+];
+var FALLBACK = ['call the bank', 'the sleep debt piece', 'renew the passport'];
+var nTick = 0;
+function stamp() {
+  clock.textContent = now(); sbarTime.textContent = now();
+  lockdate.textContent = new Date().toLocaleDateString(undefined,
+    { weekday: 'long', day: 'numeric', month: 'long' }).toLowerCase();
+}
+stamp();
+function pickTitle() {
+  if (items.length) return items[items.length - 1].t;
+  return FALLBACK[nTick % FALLBACK.length];
+}
+function deliver() {
+  stamp();
+  var title = pickTitle(), ping = PINGS[nTick % PINGS.length];
+  nTick++;
+  var card = document.createElement('div');
+  card.className = 'note';
+  card.innerHTML =
+    '<div class="who"><i></i>animus<em>now</em></div>' +
+    '<p><b>' + esc(title) + '</b> \u00b7 ' + ping.line + '</p>' +
+    '<div class="acts">' +
+      '<button type="button" data-a="' + ping.a[1] + '">' + ping.a[0] + '</button>' +
+      '<button type="button" data-a="' + ping.b[1] + '">' + ping.b[0] + '</button>' +
+    '</div>';
+  notes.appendChild(card);
+  waiting.textContent = 'answer it here. the app stays shut';
+  pingLbl.textContent = 'send another';
+  pingHint.textContent = 'each reminder brings its own two buttons';
+  setTimeout(function () { card.classList.add('in'); sfx('buzz'); haptic([12, 50, 12]); }, 30);
+  /* never more than two on screen \u2014 the engine's whole asymmetry is that
+     nothing it learns makes it send MORE. */
+  while (notes.children.length > 2) notes.removeChild(notes.firstChild);
+}
+pingBtn.addEventListener('click', function () { sfx('tap'); deliver(); });
+/* POST /api/push/action: done, drop and snooze all complete server-side, which
+   is why none of these opens anything. 'open' is the one that does. */
+notes.addEventListener('click', function (e) {
+  var btn = e.target.closest('[data-a]'); if (!btn) return;
+  var card = btn.closest('.note'), a = btn.dataset.a;
+  if (a === 'open') { settle(card, 'this is the only one that opens the app.'); sfx('tap'); return; }
+  if (a === 'done') {
+    settle(card, 'cleared. the app never opened.');
+    if (items.length) moveItem(items[items.length - 1].id, 'done', { silent: true });
+    else { sfx('clear'); haptic([8, 24, 10]); }
+    return;
+  }
+  if (a === 'drop') {
+    settle(card, 'dropped. it is in the archive, not gone.');
+    haptic(8);
+    if (items.length) moveItem(items[items.length - 1].id, 'dropped');
+    return;
+  }
+  if (a.indexOf('snooze') === 0) {
+    var h = +a.split(':')[1];
+    settle(card, h === 0 ? 'off the pile until you go and get it.'
+      : 'back in ' + (h < 24 ? h + ' hours' : Math.round(h / 24) + ' days') + '. off the pile until then.');
+    if (items.length) moveItem(items[items.length - 1].id, 'snoozed');
+  }
+});
+function settle(card, line) {
+  card.classList.add('settled');
+  var acts = $('.acts', card);
+  if (acts) acts.remove();
+  var p = document.createElement('div');
+  p.className = 'resolved'; p.textContent = line;
+  card.appendChild(p);
+  setTimeout(function () {
+    card.classList.add('out');
+    setTimeout(function () {
+      card.remove();
+      if (!notes.children.length) waiting.textContent = 'nothing is waiting on you';
+    }, 300);
+  }, 1800);
+}
+/* auto-fire once, when the section is actually looked at */
+if (io) {
+  var once = new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      once.disconnect();
+      setTimeout(deliver, 650);
+    });
+  }, { threshold: 0.45 });
+  once.observe($('#back'));
+}
+
+/* ===================================================================== the sky
+   Sky.jsx and lib/sky.js, cut down to what a visitor meets once. A canvas with the
+   camera in plain variables. Positions are baked (web/scripts/site-sky.mjs), and
+   `d` is days ago so nothing on the page goes stale. There is no pinch or wheel:
+   those would fight the page's own scrolling, and tap-to-fly is how the app moves
+   one-thumbed too. A star selects itself after the intro, for the same reason the
+   ping fires itself: a thing you have to guess at proves nothing.
+   Lime means you pushed this away more than once, and nothing else. */
+var SKY = /*SKY*/{"s":[["pay the electricity bill","reminder",1,40,null,"done",0],["fix the dripping tap","task",1,34,null,"done",0],["cancel the gym membership","task",3,30,"you'd pushed this back four times.","done",0],["descale the kettle","task",1,21,null,"done",0],["book the boiler service","reminder",2,16,"it waited 19 days.","done",0],["how to fold a fitted sheet","link",0,12,null,"done",0],["paint the hallway","idea",0,3,null,"snoozed",0],["reply to the landlord","task",1,44,null,"done",0],["send the invoice","task",3,27,"you'd pushed this back three times.","done",0],["ask about the raise","task",2,19,"it waited 12 days.","done",0],["update the portfolio","goal",1,15,null,"pending",1],["a good talk on giving feedback","link",0,9,null,"done",0],["a monthly note to clients","idea",0,4,null,"pending",0],["call mum back","reminder",1,38,null,"done",0],["that video on sleep debt","link",0,36,null,"done",0],["learn to make dal","goal",1,33,null,"done",0],["return the library book","task",2,29,"it waited 16 days.","done",0],["a long read on octopuses","link",0,26,null,"pending",0],["renew the passport","task",3,24,"you'd pushed this back twice.","done",0],["a birthday idea for dad","idea",0,22,null,"done",0],["book the dentist","reminder",1,18,null,"done",0],["a podcast for the commute","link",0,14,null,"done",0],["start running again","goal",1,11,null,"pending",0],["order the vitamin d","task",1,8,null,"done",0],["find the form 16","task",1,6,null,"pending",1],["a shelf for the hallway","idea",0,5,null,"pending",0],["text arjun about sunday","reminder",1,2,null,"done",0],["that thread on saving","link",0,1,null,"pending",0],["a name for the side project","idea",0,17,null,"done",0],["read twelve books this year","goal",1,31,null,"done",0],"done","done","done","done","done","done","link","link","link","link","idea","idea","idea","idea","goal","goal"],"wide":{"s":[[65.8,0.2,2.3,2,1,0],[65.7,9.7,2.3,2,1,0],[50.3,-8.1,3.5,2,-1,0],[59.3,16.6,2.3,2,1,0],[59.6,-6.9,2.8,2,1,0],[40.3,3,2,2,-1,3],[44.5,14.5,2,2,-1,2],[118.6,-10.8,2.3,4,1,0],[100.2,-19.6,3.5,4,-1,0],[111.4,-19.5,2.8,4,1,0],[113.3,3.3,2.3,4,1,1],[92.6,-6.5,2,4,-1,3],[100.1,4.3,2,4,-1,2],[-2.4,-5.8,2.3,0,-1,0],[-57.1,-5.9,2,1,-1,3],[22.1,-53,2.3,5,-1,1],[-6.2,-0.8,2.8,0,-1,0],[-55,-11.9,2,1,-1,3],[-3.8,5,3.5,0,-1,0],[-95.6,15.1,2,3,1,2],[3.8,-5,2.3,0,1,0],[-38.5,-9.5,2,1,1,3],[28.7,-56.2,2.3,5,1,1],[6.2,0.8,2.3,0,1,0],[2.4,5.8,2.3,0,1,0],[-101.9,15.9,2,3,-1,2],[-6.9,10.5,2.3,0,-1,0],[-63.3,-4.8,2,1,-1,3],[-89.4,2.5,2,3,1,2],[33.9,-50.9,2.3,5,1,1],[-12.5,1.2,2.3,0,-1,0],[-8.7,-9.1,2.3,0,-1,0],[1.7,-12.5,2.3,0,1,0],[10.8,-6.5,2.3,0,1,0],[11.8,4.4,2.3,0,1,0],[3.9,12,2.3,0,1,0],[-48.8,-13.1,2.3,1,1,3],[-44.7,-8.3,2.3,1,1,3],[-46.8,-2.3,2.3,1,1,3],[-53,-1.2,2.3,1,-1,3],[-105.7,10.9,2.3,3,-1,2],[-103.2,5.1,2.3,3,-1,2],[-97,4.3,2.3,3,1,2],[-93.2,9.3,2.3,3,1,2],[30.4,-44.3,2.3,5,1,1],[23.1,-45.6,2.3,5,-1,1]],"br":[[59.9,2.4,"tasks",2],[48.8,9.9,"ideas",2],[46.6,3.8,"links",2],[108.7,-13.8,"tasks",4],[109.7,-1.9,"goals",4],[102.8,-1.4,"ideas",4],[98.9,-7,"links",4]],"c":[["tasks",0,0,18],["links",-50.9,-7.1,18],["home",53.4,4.8,18.6],["ideas",-99.4,10.1,18],["work",105.8,-7.6,18.6],["goals",27.6,-50,11.7]],"l":[[0,0,-3.8,5,0,0],[0,0,-6.2,-0.8,0,0],[0,0,-2.4,-5.8,0,0],[0,0,3.8,-5,0,0],[0,0,6.2,0.8,0,0],[0,0,2.4,5.8,0,0],[-3.8,5,-6.9,10.5,1,0],[-6.2,-0.8,-12.5,1.2,1,0],[-2.4,-5.8,-8.7,-9.1,1,0],[3.8,-5,1.7,-12.5,1,0],[3.8,-5,10.8,-6.5,1,0],[6.2,0.8,11.8,4.4,1,0],[2.4,5.8,3.9,12,1,0],[-50.9,-7.1,-48.8,-13.1,0,1],[-50.9,-7.1,-44.7,-8.3,0,1],[-50.9,-7.1,-46.8,-2.3,0,1],[-50.9,-7.1,-53,-1.2,0,1],[-50.9,-7.1,-57.1,-5.9,0,1],[-50.9,-7.1,-55,-11.9,0,1],[-44.7,-8.3,-38.5,-9.5,1,1],[-57.1,-5.9,-63.3,-4.8,1,1],[53.4,4.8,59.9,2.4,0,2],[59.9,2.4,50.3,-8.1,1,2],[59.9,2.4,59.6,-6.9,1,2],[59.9,2.4,65.8,0.2,1,2],[59.9,2.4,65.7,9.7,1,2],[59.9,2.4,59.3,16.6,1,2],[53.4,4.8,48.8,9.9,0,2],[48.8,9.9,44.5,14.5,1,2],[53.4,4.8,46.6,3.8,0,2],[46.6,3.8,40.3,3,1,2],[-99.4,10.1,-105.7,10.9,0,3],[-99.4,10.1,-103.2,5.1,0,3],[-99.4,10.1,-97,4.3,0,3],[-99.4,10.1,-93.2,9.3,0,3],[-99.4,10.1,-95.6,15.1,0,3],[-99.4,10.1,-101.9,15.9,0,3],[-93.2,9.3,-89.4,2.5,1,3],[105.8,-7.6,108.7,-13.8,0,4],[108.7,-13.8,100.2,-19.6,1,4],[108.7,-13.8,111.4,-19.5,1,4],[108.7,-13.8,118.6,-10.8,1,4],[105.8,-7.6,109.7,-1.9,0,4],[109.7,-1.9,113.3,3.3,1,4],[105.8,-7.6,102.8,-1.4,0,4],[102.8,-1.4,100.1,4.3,1,4],[105.8,-7.6,98.9,-7,0,4],[98.9,-7,92.6,-6.5,1,4],[27.6,-50,22.1,-53,0,5],[27.6,-50,28.7,-56.2,0,5],[27.6,-50,33.9,-50.9,0,5],[27.6,-50,30.4,-44.3,0,5],[27.6,-50,23.1,-45.6,0,5]],"b":[-117.4,-61.7,124.4,28.1]},"tall":{"s":[[29.6,48.3,2.3,2,1,0],[29.4,57.7,2.3,2,1,0],[14,40,3.5,2,-1,0],[23,64.7,2.3,2,1,0],[23.4,41.2,2.8,2,1,0],[4.1,51.1,2,2,-1,3],[8.3,62.6,2,2,-1,2],[-30.9,30.3,2.3,4,1,0],[-49.2,21.6,3.5,4,-1,0],[-38,21.6,2.8,4,1,0],[-36.2,44.4,2.3,4,1,1],[-56.8,34.6,2,4,-1,3],[-49.3,45.5,2,4,-1,2],[-2.4,-5.8,2.3,0,-1,0],[-19.9,-52.1,2,1,-1,3],[-60.2,-18.3,2.3,5,-1,1],[-6.2,-0.8,2.8,0,-1,0],[-17.8,-58,2,1,-1,3],[-3.8,5,3.5,0,-1,0],[52,-10.1,2,3,1,2],[3.8,-5,2.3,0,1,0],[-1.3,-55.6,2,1,1,3],[-53.6,-21.5,2.3,5,1,1],[6.2,0.8,2.3,0,1,0],[2.4,5.8,2.3,0,1,0],[45.8,-9.3,2,3,-1,2],[-6.9,10.5,2.3,0,-1,0],[-26.1,-50.9,2,1,-1,3],[58.3,-22.7,2,3,1,2],[-48.4,-16.2,2.3,5,1,1],[-12.5,1.2,2.3,0,-1,0],[-8.7,-9.1,2.3,0,-1,0],[1.7,-12.5,2.3,0,1,0],[10.8,-6.5,2.3,0,1,0],[11.8,4.4,2.3,0,1,0],[3.9,12,2.3,0,1,0],[-11.6,-59.2,2.3,1,1,3],[-7.5,-54.4,2.3,1,1,3],[-9.6,-48.5,2.3,1,1,3],[-15.8,-47.3,2.3,1,-1,3],[42,-14.3,2.3,3,-1,2],[44.4,-20.1,2.3,3,-1,2],[50.7,-20.9,2.3,3,1,2],[54.5,-15.9,2.3,3,1,2],[-51.9,-9.7,2.3,5,1,1],[-59.2,-11,2.3,5,-1,1]],"br":[[23.7,50.5,"tasks",2],[12.5,57.9,"ideas",2],[10.3,51.9,"links",2],[-40.7,27.3,"tasks",4],[-39.7,39.2,"goals",4],[-46.6,39.8,"ideas",4],[-50.5,34.1,"links",4]],"c":[["tasks",0,0,18],["links",-13.7,-53.3,18],["home",17.2,52.8,18.6],["ideas",48.2,-15.1,18],["work",-43.7,33.6,18.6],["goals",-54.6,-15.3,11.7]],"l":[[0,0,-3.8,5,0,0],[0,0,-6.2,-0.8,0,0],[0,0,-2.4,-5.8,0,0],[0,0,3.8,-5,0,0],[0,0,6.2,0.8,0,0],[0,0,2.4,5.8,0,0],[-3.8,5,-6.9,10.5,1,0],[-6.2,-0.8,-12.5,1.2,1,0],[-2.4,-5.8,-8.7,-9.1,1,0],[3.8,-5,1.7,-12.5,1,0],[3.8,-5,10.8,-6.5,1,0],[6.2,0.8,11.8,4.4,1,0],[2.4,5.8,3.9,12,1,0],[-13.7,-53.3,-11.6,-59.2,0,1],[-13.7,-53.3,-7.5,-54.4,0,1],[-13.7,-53.3,-9.6,-48.5,0,1],[-13.7,-53.3,-15.8,-47.3,0,1],[-13.7,-53.3,-19.9,-52.1,0,1],[-13.7,-53.3,-17.8,-58,0,1],[-7.5,-54.4,-1.3,-55.6,1,1],[-19.9,-52.1,-26.1,-50.9,1,1],[17.2,52.8,23.7,50.5,0,2],[23.7,50.5,14,40,1,2],[23.7,50.5,23.4,41.2,1,2],[23.7,50.5,29.6,48.3,1,2],[23.7,50.5,29.4,57.7,1,2],[23.7,50.5,23,64.7,1,2],[17.2,52.8,12.5,57.9,0,2],[12.5,57.9,8.3,62.6,1,2],[17.2,52.8,10.3,51.9,0,2],[10.3,51.9,4.1,51.1,1,2],[48.2,-15.1,42,-14.3,0,3],[48.2,-15.1,44.4,-20.1,0,3],[48.2,-15.1,50.7,-20.9,0,3],[48.2,-15.1,54.5,-15.9,0,3],[48.2,-15.1,52,-10.1,0,3],[48.2,-15.1,45.8,-9.3,0,3],[54.5,-15.9,58.3,-22.7,1,3],[-43.7,33.6,-40.7,27.3,0,4],[-40.7,27.3,-49.2,21.6,1,4],[-40.7,27.3,-38,21.6,1,4],[-40.7,27.3,-30.9,30.3,1,4],[-43.7,33.6,-39.7,39.2,0,4],[-39.7,39.2,-36.2,44.4,1,4],[-43.7,33.6,-46.6,39.8,0,4],[-46.6,39.8,-49.3,45.5,1,4],[-43.7,33.6,-50.5,34.1,0,4],[-50.5,34.1,-56.8,34.6,1,4],[-54.6,-15.3,-60.2,-18.3,0,5],[-54.6,-15.3,-53.6,-21.5,0,5],[-54.6,-15.3,-48.4,-16.2,0,5],[-54.6,-15.3,-51.9,-9.7,0,5],[-54.6,-15.3,-59.2,-11,0,5]],"b":[-66.3,-71.3,66.2,71.4]}}/*YKS*/;
+/* ===================================================================== swipe
+   A stack of its own, so the gesture can be tried before anything is typed. Same
+   directions, words, throw and clear moment as the pile's deck above (Deck.jsx). */
+var SW_SAMPLE = [
+  { t: 'reply to the landlord', y: 'task', m: 'today' },
+  { t: 'that video on sleep', y: 'link', m: 'youtube', url: 'https://youtu.be/WhWc3b3KhnY' },
+  { t: 'book the dentist', y: 'reminder', m: 'friday' },
+  { t: 'call mum back', y: 'reminder', m: 'tonight' },
+  { t: 'a shelf for the hallway', y: 'idea', m: 'no date' },
+  { t: 'renew the passport', y: 'task', m: 'next week' },
+  { t: 'start running again', y: 'goal', m: 'no date' }
+];
+var swDeck = $('#swDeck'), swActs = $('#swActs'), swSaid = $('#swSaid'), swCountEl = $('#swCount');
+var swItems = [], swUndo = [], swTally = { done: 0, snoozed: 0, dropped: 0 }, swBusy = false, swTaught = false;
+var SW_EDGE = { done: 'var(--accent)', dropped: 'var(--wash-drop-ink)', snoozed: 'var(--wash-snooze-ink)', skip: 'var(--ink)' };
+function swDeal() {
+  swItems = SW_SAMPLE.map(function (x, i) { return { id: 'sw' + i, t: x.t, y: x.y, m: x.m, url: x.url || null }; });
+  swUndo = []; swTally = { done: 0, snoozed: 0, dropped: 0 };
+  swRender();
+}
+function swCardHTML(it, depth) {
+  return '<div class="dcard"' + (depth ? '' : ' data-top') + ' data-sw="' + it.id + '" style="--c:var(--t-' + it.y + ');z-index:' + (3 - depth) + ';' +
+      'transform:translate3d(0,' + (depth * 18) + 'px,0) scale(' + (1 - depth * .05) + ');' + (depth ? 'opacity:' + (1 - depth * .3) : '') + '">' +
+    '<span class="tint"></span><span class="dword" aria-hidden="true"></span>' +
+    '<span class="dtop"><span class="sq"></span><span class="label">' + esc(it.y) + (it.m && it.m !== 'no date' ? ' · ' + esc(it.m) : '') + '</span>' +
+      '<span class="label dage">just now</span></span>' +
+    '<h4>' + esc(it.t) + '</h4>' + (depth ? '' : previewHTML(it)) + '</div>';
+}
+function swRender() {
+  var list = swItems.slice(0, 3);
+  if (!swItems.length) {
+    var n = swTally.done + swTally.snoozed + swTally.dropped;
+    swDeck.innerHTML = '<div class="swempty"><b>nothing left to decide.</b><span>' +
+      swTally.done + ' done, ' + swTally.snoozed + ' for later, ' + swTally.dropped + ' dropped.</span>' +
+      '<button class="ghost" type="button" id="swAgain">deal the cards again</button></div>';
+    $('#swAgain').addEventListener('click', function () { sfx('open'); swDeal(); });
+    if (!n) swDeal();
+  } else {
+    swDeck.innerHTML = list.slice().reverse().map(function (it) { return swCardHTML(it, list.indexOf(it)); }).join('');
+    wirePreviews(swDeck);
+    swWire($('[data-top]', swDeck));
+  }
+  $('[data-d="undo"]', swActs).disabled = !swUndo.length;
+  swCountEl.textContent = swItems.length ? swItems.length + ' to go through' : '';
+}
+function swSay(line) {
+  if (!line) return;
+  swSaid.textContent = line; swSaid.classList.add('on');
+  clearTimeout(swSay.t); swSay.t = setTimeout(function () { swSaid.classList.remove('on'); }, 1700);
+}
+function swFeel(c, k, amount) {
+  var word = $('.dword', c), tint = $('.tint', c);
+  if (amount > 0) c.style.setProperty('--edge', SW_EDGE[k]); else c.style.removeProperty('--edge');
+  word.textContent = DWORD[k]; word.dataset.k = k; word.style.opacity = amount;
+  tint.style.opacity = amount * (k === 'done' ? .14 : .1);
+}
+function swThrow(kind, when) {
+  var c = $('[data-top]', swDeck); if (!c || swBusy) return;
+  var it = swItems[0];
+  if (kind === 'snoozed' && !when) { swLater(c); return; }
+  swBusy = true;
+  var box = c.getBoundingClientRect(), at = { x: box.left + box.width / 2, y: box.top + box.height / 2 };
+  swFeel(c, kind, 1);
+  var dx = kind === 'done' ? 1 : kind === 'dropped' ? -1 : 0, dy = kind === 'skip' ? -1 : kind === 'snoozed' ? 1 : 0;
+  c.style.transition = REDUCE ? 'none' : 'transform .34s cubic-bezier(.3,0,.7,1),opacity .34s';
+  c.style.transform = 'translate3d(' + (dx * 560) + 'px,' + (dy * 420) + 'px,0) rotate(' + (dx * 16) + 'deg)';
+  c.style.opacity = '0'; c.style.pointerEvents = 'none';
+  if (kind === 'done') {
+    swTally.done++;
+    sfx('clear'); haptic([8, 24, 10]);
+    if (AC && sndOn) { try { tone(440 * Math.pow(2, STEPS[Math.min(swTally.done - 1, 7)] / 12), .22, .035); } catch (e) {} }
+    fireSeal(at.x, at.y, swTally.done === 1 || swTally.done >= 3 ? 'big' : 'small');
+    swSay(swTally.done === 1 ? 'off your mind.' : swTally.done >= 3 ? (SPELL[swTally.done] || swTally.done) + ' in a row.' : null);
+  } else if (kind === 'dropped') { swTally.dropped++; haptic(8); sfx('nope'); }
+  else if (kind === 'snoozed') { swTally.snoozed++; haptic([6, 40, 6]); sfx('zzz'); swSay('back ' + when + '.'); }
+  else { sfx('whoosh'); }
+  swUndo.push({ it: it, kind: kind });
+  setTimeout(function () {
+    swItems.shift();
+    if (kind === 'skip') swItems.push(it);
+    swBusy = false; swRender();
+  }, REDUCE ? 0 : 300);
+}
+function swLater(c) {
+  c.style.transition = ''; c.style.transform = '';
+  var p = document.createElement('div');
+  p.className = 'later';
+  p.innerHTML = '<div class="snoozehead"><span class="label">when should \u201c' + esc(swItems[0].t) + '\u201d come back?</span>' +
+      '<button class="cancel" type="button" data-x>cancel</button></div>' +
+    '<div class="snooze">' + snoozePresets().filter(function (s) { return s.at; }).slice(0, 4).map(function (s) {
+      return '<button type="button" data-v="' + esc(s.k) + '"><b>' + s.k + '</b><em>' + esc(hint(s.at)) + '</em></button>';
+    }).join('') + '</div>';
+  c.appendChild(p); sfx('open');
+  p.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+  p.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (e.target.closest('[data-x]')) { p.remove(); sfx('shut'); return; }
+    var b = e.target.closest('[data-v]'); if (!b) return;
+    p.remove(); swThrow('snoozed', b.dataset.v);
+  });
+}
+function swBack() {
+  var u = swUndo.pop(); if (!u) return;
+  if (u.kind === 'skip') swItems.pop();
+  else if (swTally[u.kind]) swTally[u.kind]--;
+  swItems.unshift(u.it);
+  sfx('shut'); haptic(5); swRender();
+}
+function swWire(c) {
+  if (!c) return;
+  var pid = null, sx = 0, sy = 0, dx = 0, dy = 0, t0 = 0, moved = false;
+  var dirOf = function () { return Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'done' : 'dropped') : (dy > 0 ? 'snoozed' : 'skip'); };
+  c.addEventListener('pointerdown', function (e) {
+    if (e.target.closest('a.prev') || e.target.closest('.later')) return;
+    pid = e.pointerId; sx = e.clientX; sy = e.clientY; dx = dy = 0; moved = false; t0 = performance.now();
+    try { c.setPointerCapture(pid); } catch (err) {}
+    c.style.transition = 'none';
+  });
+  c.addEventListener('pointermove', function (e) {
+    if (e.pointerId !== pid) return;
+    dx = e.clientX - sx; dy = e.clientY - sy;
+    var d = Math.hypot(dx, dy);
+    if (d > 6) moved = true;
+    if (!moved) return;
+    c.style.transform = 'translate3d(' + dx + 'px,' + dy + 'px,0) rotate(' + (dx * .05) + 'deg)';
+    swFeel(c, dirOf(), clamp((d - 16) / (THROW_AT - 16), 0, 1));
+  });
+  var end = function (e) {
+    if (e.pointerId !== pid) return;
+    pid = null;
+    var d = Math.hypot(dx, dy), speed = d / Math.max(1, performance.now() - t0) * 1000;
+    if (e.type === 'pointerup' && moved && (d > THROW_AT || (speed > FLICK_AT && d > 28))) { swThrow(dirOf()); return; }
+    c.style.transition = ''; c.style.transform = ''; swFeel(c, 'done', 0);
+  };
+  c.addEventListener('pointerup', end);
+  c.addEventListener('pointercancel', end);
+}
+/* the first time it's seen, the top card leans right and back: the gesture, taught */
+function swTeach() {
+  if (swTaught || REDUCE) return; swTaught = true;
+  var c = $('[data-top]', swDeck); if (!c || !c.animate) return;
+  setTimeout(function () {
+    c = $('[data-top]', swDeck); if (!c) return;
+    var word = $('.dword', c); swFeel(c, 'done', 0);
+    word.textContent = DWORD.done; word.dataset.k = 'done';
+    c.animate([{ transform: 'none' }, { transform: 'translate3d(70px,0,0) rotate(3.5deg)', offset: .45 },
+      { transform: 'translate3d(70px,0,0) rotate(3.5deg)', offset: .6 }, { transform: 'none' }],
+      { duration: 1400, easing: 'cubic-bezier(.45,0,.25,1)' });
+    word.animate([{ opacity: 0 }, { opacity: 1, offset: .45 }, { opacity: 1, offset: .6 }, { opacity: 0 }], { duration: 1400 });
+  }, 500);
+}
+swActs.addEventListener('click', function (e) {
+  var b = e.target.closest('[data-d]'); if (!b) return;
+  if (b.dataset.d === 'undo') swBack(); else swThrow(b.dataset.d);
+});
+$('#moves').addEventListener('click', function (e) {
+  var b = e.target.closest('[data-d]'); if (!b) return;
+  if (!swItems.length) swDeal();
+  swThrow(b.dataset.d);
+});
+swDeck.addEventListener('keydown', function (e) {
+  var k = { ArrowRight: 'done', ArrowLeft: 'dropped', ArrowDown: 'snoozed', ArrowUp: 'skip' }[e.key];
+  if (k) { e.preventDefault(); swThrow(k); return; }
+  if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); swBack(); }
+});
+swDeal();
+if (io) new IntersectionObserver(function (es, ob) {
+  es.forEach(function (e) { if (e.isIntersecting) { swTeach(); ob.disconnect(); } });
+}, { threshold: .6 }).observe(swDeck);
+
+/* ==================================================================== detail
+   The open item, as the desktop app lays it out (DesktopHome + ItemEditor): list
+   beside it, fields that save themselves, history, and the dock at the foot. A
+   status move plays the same sweep on the list row as the pile does (wash.js). */
+var ED_SAMPLE = [
+  { t: 'renew the passport', y: 'task', urg: 3, due: '+5', m: 'next week',
+    note: 'need the old passport and two photos. slots open at 9am.',
+    hist: [['captured', 'whatsapp', '2 nov, 18:34'], ['snoozed', 'until saturday · <b>“waiting on the photos”</b>', '3 nov, 21:10'],
+           ['came back', 'on its own', 'sat, 9:00'], ['opened', '3 times', 'this week']] },
+  { t: 'send the invoice to priya', y: 'task', urg: 2, due: '+0', m: 'today', note: '',
+    hist: [['captured', 'whatsapp', 'yesterday, 11:02'], ['edited', 'title', 'yesterday, 11:05']] },
+  { t: 'that video on sleep', y: 'link', urg: 1, due: '', m: 'youtube', url: 'https://youtu.be/WhWc3b3KhnY', note: '',
+    hist: [['captured', 'whatsapp · with a link', 'monday, 23:48']] },
+  { t: 'a monthly note to clients', y: 'idea', urg: 2, due: '', m: 'no date', note: '',
+    hist: [['captured', 'in the app', 'last week']] }
+];
+var edRows = $('#edRows'), edEl = $('#ed'), edItems = [], edOpen = null, edLater = false, edSavedT = null;
+function edReset() {
+  edItems = ED_SAMPLE.map(function (x, i) { var o = JSON.parse(JSON.stringify(x)); o.id = 'ed' + i; return o; });
+  edOpen = edItems[0].id; edLater = false; edRender();
+}
+function edById(id) { return edItems.filter(function (x) { return x.id === id; })[0]; }
+function edRowHTML(it) {
+  return '<div class="item" role="button" tabindex="0" data-ed="' + it.id + '" aria-current="' + (it.id === edOpen) + '" style="--c:var(--t-' + it.y + ')">' +
+    '<span class="sq"></span><div><h4>' + esc(it.t) + '</h4><div class="meta"><span class="label">' + esc(it.y) +
+    (it.m && it.m !== 'no date' ? ' · ' + esc(it.m) : '') + '</span>' + (it.urg === 3 ? '<span class="pill hot">high</span>' : '') +
+    '</div></div><span></span></div>';
+}
+function edRender() {
+  if (!edItems.length) {
+    edRows.innerHTML = '<div class="clear"><b>the pile is clear.</b><span>that’s the sample.</span>' +
+      '<button class="ghost" type="button" id="edAgain">start again</button></div>';
+    edEl.innerHTML = '';
+    $('#edAgain').addEventListener('click', function () { sfx('open'); edReset(); });
+    return;
+  }
+  edRows.innerHTML = edItems.map(edRowHTML).join('');
+  edPaint();
+}
+function edPaint() {
+  var it = edById(edOpen); if (!it) return;
+  edEl.innerHTML = '<div class="edbody">' +
+      '<div class="edhead" style="--c:var(--t-' + it.y + ')"><span class="sq"></span>' +
+        '<span class="label" style="color:var(--t-' + it.y + ')">' + esc(it.y) + '</span><span class="saved" id="edSaved">saved</span></div>' +
+      '<textarea class="ttl" id="edTitle" rows="1" aria-label="title">' + esc(it.t) + '</textarea>' +
+      previewHTML(it) +
+      '<div class="fld"><span class="label">note to self</span><div class="notebox">' +
+        '<div class="tb" role="toolbar" aria-label="formatting"><button type="button" data-cmd="bold" aria-label="bold"><b>B</b></button>' +
+        '<button type="button" data-cmd="italic" aria-label="italic"><i>I</i></button><span class="sep"></span>' +
+        '<button type="button" data-cmd="insertUnorderedList" aria-label="bulleted list"><svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 4h7M6 8h7M6 12h7"/><circle cx="3" cy="4" r=".6" fill="currentColor"/><circle cx="3" cy="8" r=".6" fill="currentColor"/><circle cx="3" cy="12" r=".6" fill="currentColor"/></svg></button></div>' +
+        '<div class="nt" id="edNote" contenteditable="true" data-ph="why this matters, what done looks like, why it’s due when it is…">' + esc(it.note) + '</div></div></div>' +
+      '<div class="fld"><span class="label">type</span><div class="chips" id="edType">' + TYPES.map(function (t) {
+        return '<button class="chip" type="button" data-v="' + t + '" style="--c:var(--t-' + t + ')" aria-pressed="' + (t === it.y) + '"><i></i>' + t + '</button>';
+      }).join('') + '</div></div>' +
+      '<div class="row2"><div class="fld"><span class="label">urgency</span><div class="urg" id="edUrg">' + URG.map(function (u) {
+        return '<button type="button" data-v="' + u[0] + '" aria-pressed="' + (u[0] === it.urg) + '">' + u[1] + '</button>';
+      }).join('') + '</div></div>' +
+      '<div class="fld"><span class="label">due date</span><div class="dt"><input type="date" id="edDue" value="' + esc(dueValue(it)) + '" /></div></div></div>' +
+      '<div class="facts"><div><span class="label">captured</span><b>' + esc(it.hist[0][2]) + '</b></div>' +
+        '<div><span class="label">last seen</span><b>just now</b></div>' +
+        '<div><span class="label">put off</span><b>' + it.hist.filter(function (h) { return h[0] === 'snoozed'; }).length + '×</b></div></div>' +
+      '<div class="fld"><span class="label">history</span><ul class="hist" style="margin-top:0">' + it.hist.map(function (h, i) {
+        return '<li><i' + (i ? ' style="background:' + (h[0] === 'snoozed' ? 'var(--wash-snooze-ink)' : 'var(--muted)') + '"' : '') + '></i><span>' +
+          h[0] + ' · <em>' + h[1] + '</em><br /><em>' + esc(h[2]) + '</em></span></li>';
+      }).join('') + '</ul></div>' +
+    '</div>' +
+    '<div class="dock" id="edDock">' + (edLater
+      ? '<div class="later"><div class="snoozehead"><span class="label">bring it back</span><button class="cancel" type="button" data-a="cancel">cancel</button></div>' +
+        '<div class="snooze">' + snoozePresets().filter(function (s) { return s.at; }).slice(0, 3).map(function (s) {
+          return '<button type="button" data-v="' + esc(s.k) + '"><b>' + s.k + '</b><em>' + esc(hint(s.at)) + '</em></button>'; }).join('') + '</div></div>'
+      : '<button class="pri" type="button" data-a="done">done <kbd>E</kbd></button>' +
+        '<button type="button" data-a="snooze">later <kbd>S</kbd></button>' +
+        '<button type="button" data-a="dropped">drop <kbd>X</kbd></button>') + '</div>';
+  wirePreviews(edEl);
+  var ttl = $('#edTitle'); grow(ttl);
+}
+function edSaved() {
+  var s = $('#edSaved'); if (!s) return;
+  s.classList.add('on'); clearTimeout(edSavedT);
+  edSavedT = setTimeout(function () { s.classList.remove('on'); }, 1200);
+}
+function edRowFor(id) { return $('.item[data-ed="' + id + '"]', edRows); }
+function edMove(kind, label) {
+  var it = edById(edOpen); if (!it) return;
+  var row = edRowFor(it.id), at = row ? row.getBoundingClientRect() : null;
+  if (kind === 'done') {
+    sfx('clear'); haptic([8, 24, 10]);
+  } else if (kind === 'dropped') haptic(8); else haptic([6, 40, 6]);
+  var hold = fireWash(row, kind, 0, label, edRows);
+  if (!hold && kind === 'done' && at) fireSeal(at.left + at.width / 2, at.top + at.height / 2, 'small');
+  var i = edItems.indexOf(it);
+  edLater = false;
+  setTimeout(function () {
+    edItems.splice(i, 1);
+    edOpen = edItems.length ? edItems[Math.min(i, edItems.length - 1)].id : null;
+    edRender();
+  }, hold || (REDUCE ? 0 : 380));
+}
+edRows.addEventListener('click', function (e) {
+  var r = e.target.closest('[data-ed]'); if (!r || r.dataset.ed === edOpen) return;
+  edOpen = r.dataset.ed; edLater = false; sfx('tap');
+  $$('.item', edRows).forEach(function (x) { x.setAttribute('aria-current', x === r ? 'true' : 'false'); });
+  edPaint();
+});
+edEl.addEventListener('click', function (e) {
+  var it = edById(edOpen); if (!it) return;
+  var cmd = e.target.closest('[data-cmd]');
+  if (cmd) { e.preventDefault(); $('#edNote').focus(); try { document.execCommand(cmd.dataset.cmd); } catch (err) {} edSaved(); return; }
+  var ty = e.target.closest('#edType [data-v]');
+  if (ty) { it.y = ty.dataset.v; sfx('tick'); var r = edRowFor(it.id); if (r) r.outerHTML = edRowHTML(it); edPaint(); edSaved(); return; }
+  var ug = e.target.closest('#edUrg [data-v]');
+  if (ug) { it.urg = +ug.dataset.v; sfx('tick'); var r2 = edRowFor(it.id); if (r2) r2.outerHTML = edRowHTML(it); edPaint(); edSaved(); return; }
+  var a = e.target.closest('[data-a]');
+  if (a) {
+    if (a.dataset.a === 'snooze') { edLater = true; sfx('open'); edPaint(); return; }
+    if (a.dataset.a === 'cancel') { edLater = false; sfx('shut'); edPaint(); return; }
+    edMove(a.dataset.a); return;
+  }
+  var sn = e.target.closest('.snooze [data-v]');
+  if (sn) edMove('snoozed', sn.dataset.v);
+});
+edEl.addEventListener('input', function (e) {
+  var it = edById(edOpen); if (!it) return;
+  if (e.target.id === 'edTitle') {
+    it.t = e.target.value; grow(e.target);
+    var h = $('.item[data-ed="' + it.id + '"] h4', edRows); if (h) h.textContent = it.t;
+  } else if (e.target.id === 'edNote') it.note = e.target.innerText;
+  edSaved();
+});
+edEl.addEventListener('change', function (e) {
+  var it = edById(edOpen); if (!it || e.target.id !== 'edDue') return;
+  it.due = e.target.value; edSaved();
+});
+/* E, S, X when the section has the pointer or focus, never while typing */
+var edHot = false;
+$('#detail').addEventListener('pointerenter', function () { edHot = true; });
+$('#detail').addEventListener('pointerleave', function () { edHot = false; });
+addEventListener('keydown', function (e) {
+  if (!edHot || e.metaKey || e.ctrlKey || e.altKey) return;
+  var t = e.target; if (t && (t.isContentEditable || /^(input|textarea)$/i.test(t.tagName))) return;
+  var k = { e: 'done', x: 'dropped' }[e.key.toLowerCase()];
+  if (k) { e.preventDefault(); edMove(k); return; }
+  if (e.key.toLowerCase() === 's') { e.preventDefault(); edLater = true; sfx('open'); edPaint(); }
+});
+edReset();
+
+/* The sky, ported from the app: Sky.jsx (painting) and lib/sky.js (camera, sizes,
+   labels, hit testing), so the page draws what the app draws. Positions are baked
+   by web/scripts/site-sky.mjs from the app's own layoutSky. Keep the two in step:
+   if Sky.jsx or lib/sky.js change how the sky looks, this changes with them. */
+var C = { bg: '#08080d', star: '#f5f5f7', line: 'rgba(245,245,247,.2)', text: '#d8d8de', dim: '#85858f',
+          card: 'rgba(22,22,31,.92)', glow: 'rgba(124,92,252,.09)',
+          done: '#6ee7a0', pending: '#7cc4ff', snoozed: '#ffd866', dropped: '#ff9a5c', due: '#ff5c6c',
+          font: 'Geist,system-ui,sans-serif' };
+var SKYC = C;
+var SKYLABEL = { done: 'done', pending: 'waiting', snoozed: 'snoozed', dropped: 'dropped' };
+var KIND_KEYS = ['done', 'goal', 'idea', 'link'];
+var GAP = 6, RADIUS = { 0: 2, 1: 2.3, 2: 2.8, 3: 3.5 };
+var MID_K = 26 / GAP, CLOSE_K = 34 / GAP, DEEP_K = 52 / GAP, MAX_FIT_K = 54 / GAP;
+var LINE_GAP = 4.5, CHIP_H = 22, TITLE_CHARS = 30, NAME_ON_ROOT = 90, CHIP_CLEAR = 24, MIN_LABEL = 70;
+var OVERVIEW_ZOOM = 1.5, INTRO_STAGGER = 70, INTRO_MS = 760, PULSE_MS = 3400;
+
+var skyEl = $('.skyframe'), skyC = $('#skyc'), skyG = skyC.getContext('2d'), skyCap = $('#skyCap'),
+    skyNEl = $('#skyN'), skyBack = $('#skyBack'), skyList = $('#skyList'), skyKey = $('#skyKey');
+var DUST = [];
+for (var di = 0; di < 130; di++) {
+  DUST.push({ x: hash01(String(di), 'dust-x'), y: hash01(String(di), 'dust-y'),
+              r: .35 + hash01(String(di), 'dust-r') * .45, o: .1 + hash01(String(di), 'dust-o') * .16 });
+}
+var skyStars = SKY.s.map(function (s, i) {
+  return typeof s !== 'string'
+    ? { i: i, id: 's' + i, t: s[0], y: s[1], m: s[2], d: s[3], fact: s[4], st: s[5], up: !!s[6], on: true, mine: false }
+    : { i: i, id: 'slot' + i, t: '', y: 'task', m: 1, d: 0, fact: null, st: 'pending', up: false, on: false, mine: false, kind: s };
+});
+var skyLay = SKY.wide, skyW = 0, skyH = 0, skyDpr = 1, fit = { x: 0, y: 0, k: 1 },
+    cam = { x: 0, y: 0, k: 1 }, flight = null, picked = null, topic = null, intro = null,
+    skySeen = false, skyIn = false, skyRaf = 0, pendingStar = null, labels = { names: [], branches: [], stars: [] };
+
+/* ------------------------------------------------------------ lib/sky.js, ported */
+function levelAt(k) { return k >= DEEP_K ? 'deep' : k >= CLOSE_K ? 'close' : k >= MID_K ? 'mid' : 'far'; }
+function fitCamera(bounds, w, h, pad) {
+  var side = pad.x, top = pad.top, bottom = pad.bottom;
+  var bw = Math.max(bounds.maxX - bounds.minX, 1), bh = Math.max(bounds.maxY - bounds.minY, 1);
+  var k = Math.max(Math.min((w - side * 2) / bw, (h - top - bottom) / bh, MAX_FIT_K), .05);
+  return { x: (bounds.minX + bounds.maxX) / 2, y: (bounds.minY + bounds.maxY) / 2 - (top - bottom) / (2 * k), k: k };
+}
+function starRadius(star, k, fitK) {
+  var room = Math.min(1, Math.max(.42, (GAP * k) / 20));
+  var grow = Math.min(1.5, Math.max(1, Math.pow(k / fitK, .3)));
+  return (star.r != null ? star.r : RADIUS[1]) * room * grow;
+}
+function w2s(c, wx, wy) { return { x: (wx - c.x) * c.k + skyW / 2, y: (wy - c.y) * c.k + skyH / 2 }; }
+function s2w(c, x, y) { return { x: (x - skyW / 2) / c.k + c.x, y: (y - skyH / 2) / c.k + c.y }; }
+function cameraFor(con, inset) {
+  var right = inset.right || 0, bottom = inset.bottom || 0, TOP = inset.top || 44;
+  var room = Math.min(skyW - right, skyH - bottom - TOP) * .94;
+  var k = Math.min(CLOSE_K * 1.4, room / (con.radius * 2));
+  return { x: con.x + right / (2 * k), y: con.y + (bottom - TOP) / (2 * k), k: k };
+}
+function measure(text, px) {
+  skyG.font = (px === 14 ? 600 : 400) + ' ' + px + 'px ' + C.font;
+  return skyG.measureText(text).width;
+}
+function chipWidth(tag, count) { return Math.ceil(measure(tag.toUpperCase(), 11) * 1.18 + measure(String(count), 11) + 34); }
+function clip(text, n) { var t = String(text || '').trim(); n = n || TITLE_CHARS; return t.length <= n ? t : t.slice(0, n - 1).trim() + '…'; }
+function shorten(text, width, size) {
+  size = size || 12;
+  if (measure(text, size) <= width) return text;
+  var n = text.length - 1;
+  while (n > 6 && measure(text.slice(0, n) + '…', size) > width) n -= 1;
+  return text.slice(0, n).trim() + '…';
+}
+function overlaps(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
+
+function labelsFor(L, c, o) {
+  var w = skyW, h = skyH, level = levelAt(c.k), detailed = !o.overview && (level === 'close' || level === 'deep');
+  var taken = o.reserved.slice(), out = { names: [], branches: [], stars: [] };
+  var take = function (box) { for (var i = 0; i < taken.length; i++) if (overlaps(taken[i], box)) return false; taken.push(box); return true; };
+  var star = function (s) {
+    var p = w2s(c, s.x, s.y);
+    if (p.x < 8 || p.x > w - 8 || p.y < 8 || p.y > h - 8) return;
+    var full = clip(s.title, o.overview ? 22 : level === 'deep' ? 44 : TITLE_CHARS);
+    var meta = detailed ? describe(s, level) : [];
+    var height = 16 + meta.length * 14, gap = starRadius(s, c.k, c.k) + 6;
+    var roomR = w - 8 - (p.x + gap), roomL = p.x - gap - 8;
+    var sides = (s.side === -1 ? ['left', 'right'] : ['right', 'left']).map(function (side) {
+      var room = side === 'right' ? roomR : roomL;
+      var text = shorten(full, room - 4), lines = meta.map(function (m) { return shorten(m, room - 4, 11); });
+      var width = Math.max.apply(null, [measure(text, 12)].concat(lines.map(function (m) { return measure(m, 11); }))) + 4;
+      return { text: text, lines: lines, width: width, room: room, x: side === 'right' ? p.x + gap : p.x - gap - width, y: p.y - 8 };
+    });
+    var whole = Math.max.apply(null, [measure(full, 12)].concat(meta.map(function (m) { return measure(m, 11); }))) + 4;
+    var spots = sides.filter(function (q) { return q.room >= MIN_LABEL; }).concat([
+      { text: full, lines: meta, width: whole, x: p.x - whole / 2, y: p.y - gap - height },
+      { text: full, lines: meta, width: whole, x: p.x - whole / 2, y: p.y + gap }]);
+    for (var i = 0; i < spots.length; i++) {
+      var sp = spots[i], box = { x: sp.x, y: sp.y, w: sp.width, h: height };
+      if (box.x < 8 || box.x + box.w > w - 8 || box.y < 8 || box.y + height > h - 8) continue;
+      if (take(box)) { out.stars.push({ id: s.id, text: sp.text, meta: sp.lines, x: box.x + 2, y: box.y + 8, box: box, selected: s.id === o.selected }); return; }
+    }
+  };
+  var pick0 = o.selected ? L.stars.filter(function (s) { return s.id === o.selected; })[0] : null;
+  if (pick0) star(pick0);
+  var members = {};
+  L.stars.concat(L.branches).forEach(function (q) { var hm = q.home != null ? q.home : q.tag; if (hm == null) return; (members[hm] = members[hm] || []).push(q); });
+  L.constellations.slice().sort(function (a, b) { return b.count - a.count; }).forEach(function (con) {
+    var p = w2s(c, con.x, con.y), rim = con.radius * c.k;
+    if (p.x + rim < 0 || p.x - rim > w || p.y + rim < 0 || p.y - rim > h) return;
+    var width = chipWidth(con.tag, con.count), x = Math.min(w - width - 8, Math.max(8, p.x - width / 2));
+    var covers = function (q) { var s = w2s(c, q.x, q.y); return s.x > x - CHIP_CLEAR && s.x < x + width + CHIP_CLEAR && Math.abs(s.y - p.y) < 11 + CHIP_CLEAR; };
+    var rootFree = rim >= NAME_ON_ROOT && !(members[con.tag] || []).some(covers);
+    var tries = (rootFree ? [p.y] : []).concat([p.y - rim - 16, p.y + rim + 16]);
+    for (var i = 0; i < tries.length; i++) {
+      var y = Math.min(h - 16, Math.max(16, tries[i])), box = { x: x, y: y - 12, w: width, h: 24 };
+      if (take(box)) { out.names.push({ tag: con.tag, text: con.tag, x: x + width / 2, y: y, count: con.count, box: box, con: con }); break; }
+    }
+  });
+  L.constellations.forEach(function (con) { var p = w2s(c, con.x, con.y); taken.push({ x: p.x - 10, y: p.y - 10, w: 20, h: 20 }); });
+  if (level === 'far') return out;
+  L.branches.forEach(function (b) {
+    var p = w2s(c, b.x, b.y);
+    if (p.x < 8 || p.x > w - 8 || p.y < 8 || p.y > h - 8) return;
+    var width = measure(b.label, 11) + 6, box = { x: p.x - width / 2, y: p.y - 7, w: width, h: 14 };
+    if (take(box)) out.branches.push({ tag: b.tag, text: b.label, x: p.x, y: p.y });
+  });
+  L.stars.forEach(function (s) {
+    var p = w2s(c, s.x, s.y);
+    if (p.x < -8 || p.x > w + 8 || p.y < -8 || p.y > h + 8) return;
+    var r = starRadius(s, c.k, c.k) + 2;
+    taken.push({ x: p.x - r, y: p.y - r, w: r * 2, h: r * 2 });
+  });
+  L.stars.filter(function (s) { return s.id !== o.selected && (detailed || s.magnitude >= 2 || s.home == null); })
+    .sort(function (a, b) { return b.magnitude - a.magnitude; }).forEach(star);
+  return out;
+}
+function labelAt(x, y) {
+  var inside = function (b) { return b && x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h; };
+  var st = labels.stars.filter(function (l) { return inside(l.box); })[0];
+  if (st) return { kind: 'star', id: st.id };
+  var nm = labels.names.filter(function (n) { return inside(n.box); })[0];
+  if (nm) return { kind: 'constellation', tag: nm.tag };
+  return null;
+}
+function hitTest(L, x, y) {
+  var wpt = s2w(cam, x, y), level = levelAt(cam.k);
+  var inside = L.constellations.filter(function (c) { return Math.hypot(c.x - wpt.x, c.y - wpt.y) <= c.radius + 14 / cam.k; })[0];
+  if (level === 'far' && inside) return { kind: 'constellation', tag: inside.tag };
+  var near = null, bd = Math.pow(24 / cam.k, 2);
+  L.stars.forEach(function (s) { var d = Math.pow(s.x - wpt.x, 2) + Math.pow(s.y - wpt.y, 2); if (d <= bd) { near = s; bd = d; } });
+  if (inside) {
+    var toHub = Math.hypot(inside.x - wpt.x, inside.y - wpt.y), toStar = near ? Math.hypot(near.x - wpt.x, near.y - wpt.y) : Infinity;
+    if (toHub <= 20 / cam.k && toHub < toStar) return { kind: 'constellation', tag: inside.tag };
+  }
+  if (near) return { kind: 'star', id: near.id };
+  if (level === 'mid' && inside) return { kind: 'constellation', tag: inside.tag };
+  return null;
+}
+
+/* ------------------------------------------------------ what's lit, as a layout */
+function onDay(d) {
+  if (d <= 0) return 'today';
+  if (d === 1) return 'yesterday';
+  var dt = new Date(Date.now() - d * 86400000);
+  if (d < 7) return dt.toLocaleDateString(undefined, { weekday: 'long' }).toLowerCase();
+  return dt.getDate() + ' ' + dt.toLocaleDateString('en-GB', { month: 'short' }).toLowerCase();
+}
+function whenOf(s) {
+  if (s.up) return 'due ' + new Date(Date.now() + 4 * 86400000).toLocaleDateString(undefined, { weekday: 'long' }).toLowerCase();
+  if (s.st === 'snoozed') return 'snoozed · added ' + onDay(s.d);
+  if (s.st === 'dropped') return 'dropped · added ' + onDay(s.d);
+  if (s.st === 'pending') return 'added ' + onDay(s.d);
+  return 'finished ' + onDay(s.d);
+}
+function describe(s, level) { var first = whenOf(s.ref); return level === 'deep' && s.ref.fact ? [first, s.ref.fact] : [first]; }
+function liveLayout() {
+  var tags = skyLay.c.map(function (c) { return c[0]; }), counts = {};
+  var stars = skyStars.filter(function (s) { return s.on; }).map(function (s) {
+    var b = skyLay.s[s.i], home = b[3] < 0 ? null : tags[b[3]];
+    if (home) counts[home] = (counts[home] || 0) + 1;
+    return { id: s.id, x: b[0], y: b[1], r: b[2], home: home, side: b[4], kind: KIND_KEYS[b[5]], magnitude: s.m, title: s.t, ref: s };
+  });
+  return {
+    stars: stars,
+    branches: skyLay.br.map(function (b) { return { x: b[0], y: b[1], label: b[2], tag: tags[b[3]] }; })
+      .filter(function (b) { return counts[b.tag]; }),
+    constellations: skyLay.c.map(function (c) { return { tag: c[0], x: c[1], y: c[2], radius: c[3], count: counts[c[0]] || 0 }; })
+      .filter(function (c) { return c.count; }),
+    bounds: { minX: skyLay.b[0], minY: skyLay.b[1], maxX: skyLay.b[2], maxY: skyLay.b[3] },
+  };
+}
+function framePad() {
+  var head = $('.skyhead').getBoundingClientRect().height + 30;
+  return { x: skyW < 640 ? 22 : 36, top: head, bottom: skyW < 640 ? 110 : 92 };
+}
+function skyFit() {
+  var r = skyEl.getBoundingClientRect();
+  skyW = r.width; skyH = r.height; if (!skyW) return;
+  skyDpr = Math.min(2, devicePixelRatio || 1);
+  skyC.width = Math.round(skyW * skyDpr); skyC.height = Math.round(skyH * skyDpr);
+  skyLay = skyW / Math.max(skyH - 220, 120) > 1.5 ? SKY.wide : SKY.tall;
+  fit = fitCamera(liveLayout().bounds, skyW, skyH, framePad());
+  if (topic) cam = topicCam(topic); else cam = { x: fit.x, y: fit.y, k: fit.k };
+  skyDraw(performance.now());
+}
+function topicCam(tag) {
+  var con = liveLayout().constellations.filter(function (c) { return c.tag === tag; })[0];
+  return con ? cameraFor(con, { top: 60, bottom: skyW < 640 ? 110 : 92 }) : { x: fit.x, y: fit.y, k: fit.k };
+}
+function flyTo(target) {
+  if (REDUCE) { cam = target; skyDraw(performance.now()); return; }
+  flight = { from: { x: cam.x, y: cam.y, k: cam.k }, to: target, t0: performance.now(), dur: 620 };
+  skyKick();
+  /* rAF is paused in a background tab: land anyway. */
+  setTimeout(function () { if (flight && flight.to === target) { cam = target; flight = null; skyDraw(performance.now()); } }, 900);
+}
+function skyKick() { if (!skyRaf) skyRaf = requestAnimationFrame(skyLoop); }
+function skyLoop(t) {
+  skyRaf = 0;
+  var more = skyIn && !REDUCE;
+  if (flight) {
+    var u = clamp((t - flight.t0) / flight.dur, 0, 1), e = 1 - Math.pow(1 - u, 3);
+    cam = { x: flight.from.x + (flight.to.x - flight.from.x) * e,
+            y: flight.from.y + (flight.to.y - flight.from.y) * e,
+            k: flight.from.k + (flight.to.k - flight.from.k) * e };
+    if (u >= 1) flight = null; else more = true;
+  }
+  skyDraw(t);
+  if (more) skyKick();
+}
+var halos = {};
+function halo(key, col) {
+  if (halos[key]) return halos[key];
+  var c = document.createElement('canvas'); c.width = c.height = 64;
+  var g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, col); gr.addColorStop(1, 'transparent');
+  g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  return (halos[key] = c);
+}
+function easeOut(u) { return 1 - Math.pow(1 - Math.min(1, Math.max(0, u)), 3); }
+
+/* ---------------------------------------------------- Sky.jsx paint(), ported */
+function skyDraw(t) {
+  if (!skyW) return;
+  var ctx = skyG, w = skyW, h = skyH, view = cam, L = liveLayout();
+  ctx.setTransform(skyDpr, 0, 0, skyDpr, 0, 0);
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, w, h);
+  var lift = ctx.createRadialGradient(w / 2, h * .55, 0, w / 2, h * .55, Math.max(w, h) * .72);
+  lift.addColorStop(0, C.glow); lift.addColorStop(1, 'transparent');
+  ctx.fillStyle = lift; ctx.fillRect(0, 0, w, h);
+
+  var order = {}; L.constellations.forEach(function (k, i) { order[k.tag] = i; });
+  var hubs = {}; L.constellations.forEach(function (k) { hubs[k.tag] = k; });
+  var growing = false;
+  var growth = function (home) {
+    if (intro === null) return 1;
+    var i = home == null ? L.constellations.length : order[home];
+    var u = (t - intro - i * INTRO_STAGGER) / INTRO_MS;
+    if (u < 1) growing = true;
+    return easeOut(u);
+  };
+  var from = function (home, x, y, u) {
+    var hub = hubs[home];
+    return hub && u < 1 ? { x: hub.x + (x - hub.x) * u, y: hub.y + (y - hub.y) * u } : { x: x, y: y };
+  };
+  var dimmed = function (home) { return topic && home !== topic ? .3 : 1; };
+
+  var driftX = view.x * view.k * .04, driftY = view.y * view.k * .04;
+  ctx.fillStyle = C.star;
+  DUST.forEach(function (d) {
+    var x = (((d.x * w - driftX) % w) + w) % w, y = (((d.y * h - driftY) % h) + h) % h;
+    ctx.globalAlpha = d.o; ctx.beginPath(); ctx.arc(x, y, d.r, 0, 6.2832); ctx.fill();
+  });
+
+  L.constellations.forEach(function (k) {
+    var u = growth(k.tag), size2 = k.radius * view.k * 1.9, p = w2s(view, k.x, k.y);
+    ctx.globalAlpha = .07 * u * dimmed(k.tag);
+    ctx.drawImage(halo('cloud', C.star), p.x - size2, p.y - size2, size2 * 2, size2 * 2);
+  });
+
+  /* lines to an empty place for the visitor's item stay hidden until it's filled */
+  var ends = {};
+  skyStars.forEach(function (s) { var b = skyLay.s[s.i]; ends[b[0] + ',' + b[1]] = s; });
+  var tags = skyLay.c.map(function (c) { return c[0]; });
+  ctx.strokeStyle = C.star; ctx.lineCap = 'round';
+  skyLay.l.forEach(function (l) {
+    var tip = ends[l[2] + ',' + l[3]];
+    if (tip && !tip.on) return;
+    var home = tags[l[5]];
+    if (!hubs[home]) return;
+    var u = growth(home), st = from(home, l[0], l[1], u), en = from(home, l[2], l[3], u);
+    var a = w2s(view, st.x, st.y), b = w2s(view, en.x, en.y);
+    if (Math.max(a.x, b.x) < 0 || Math.min(a.x, b.x) > w || Math.max(a.y, b.y) < 0 || Math.min(a.y, b.y) > h) return;
+    var len = Math.hypot(b.x - a.x, b.y - a.y); if (len < LINE_GAP * 2 + 2) return;
+    var ux = (b.x - a.x) / len, uy = (b.y - a.y) / len;
+    ctx.lineWidth = l[4] === 0 ? .9 : .7;
+    ctx.globalAlpha = (l[4] === 0 ? .5 : .34) * dimmed(home) * u;
+    ctx.beginPath(); ctx.moveTo(a.x + ux * LINE_GAP, a.y + uy * LINE_GAP); ctx.lineTo(b.x - ux * LINE_GAP, b.y - uy * LINE_GAP); ctx.stroke();
+  });
+  ctx.fillStyle = C.star;
+  L.branches.forEach(function (b) {
+    var u = growth(b.tag), at = from(b.tag, b.x, b.y, u), p = w2s(view, at.x, at.y);
+    ctx.globalAlpha = .55 * dimmed(b.tag) * u; ctx.beginPath(); ctx.arc(p.x, p.y, 1.1, 0, 6.2832); ctx.fill();
+  });
+  L.constellations.forEach(function (k) {
+    var p = w2s(view, k.x, k.y);
+    ctx.globalAlpha = .75 * dimmed(k.tag); ctx.beginPath(); ctx.arc(p.x, p.y, 1.4, 0, 6.2832); ctx.fill();
+  });
+
+  var sec = t / 1000;
+  L.stars.forEach(function (s) {
+    var S = s.ref, u = growth(s.home), at = from(s.home, s.x, s.y, u), p = w2s(view, at.x, at.y);
+    var r = starRadius({}, view.k, fit.k);
+    if (p.x < -30 || p.x > w + 30 || p.y < -30 || p.y > h + 30) return;
+    var key = S.st, colour = C[key] || C.done;
+    var twinkle = !REDUCE ? .9 + .1 * Math.cos((t / 6000 + hash01(s.id, 'tw')) * Math.PI * 2) : 1;
+    var base = .95 * twinkle * dimmed(s.home) * u;
+
+    /* a slow ring on today's clears: how today shows up, and a quiet day shows nothing */
+    if (S.mine && key === 'done' && !REDUCE && u >= 1) {
+      var phase = ((t + hash01(s.id, 'pulse') * PULSE_MS) % PULSE_MS) / PULSE_MS;
+      ctx.globalAlpha = .55 * (1 - phase); ctx.strokeStyle = colour; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(p.x, p.y, r + 2 + phase * 13, 0, 6.2832); ctx.stroke();
+    }
+    if (S.lit) {
+      var age = t - S.lit;
+      if (age >= 0 && age < 1100) {
+        var v = age / 1100;
+        ctx.globalAlpha = .9 * (1 - v); ctx.strokeStyle = colour; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 4 + v * 40, 0, 6.2832); ctx.stroke();
+      }
+    }
+    var dropped = key === 'dropped', flash = 0;
+    if (S.up && !REDUCE) {
+      var a1 = Math.sin(sec * (.7 + hash01(s.id, 'f1') * .9) + hash01(s.id, 'p1') * 6.28);
+      var a2 = Math.sin(sec * (1.3 + hash01(s.id, 'f2') * 1.1) + hash01(s.id, 'p2') * 6.28);
+      flash = Math.pow(Math.max(0, (a1 + a2) / 2), 3);
+    }
+    var body = (dropped ? Math.max(2, r * .8) : Math.max(2.8, r)) * (1 + flash * .35);
+    var shine = (dropped ? .55 : 1) * base * (.82 + flash * .5);
+    ctx.globalCompositeOperation = 'lighter';
+    var glow = body * 3.8 * (1 + flash * .6);
+    ctx.globalAlpha = Math.min(1, .5 * shine);
+    ctx.drawImage(halo(key, colour), p.x - glow, p.y - glow, glow * 2, glow * 2);
+    var spike = (s.magnitude >= 3 ? 5 : s.magnitude >= 2 ? 4 : 3) + flash * 4;
+    if (!dropped) {
+      var reach = body * spike;
+      ctx.lineWidth = .7;
+      [[1, 0], [0, 1]].forEach(function (dv) {
+        var g = ctx.createLinearGradient(p.x - dv[0] * reach, p.y - dv[1] * reach, p.x + dv[0] * reach, p.y + dv[1] * reach);
+        g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.5, colour); g.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.strokeStyle = g; ctx.globalAlpha = Math.min(1, (flash > .05 ? .8 : .5) * shine);
+        ctx.beginPath(); ctx.moveTo(p.x - dv[0] * reach, p.y - dv[1] * reach); ctx.lineTo(p.x + dv[0] * reach, p.y + dv[1] * reach); ctx.stroke();
       });
-    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.05 });
-    for (var m = 0; m < els.length; m++) io.observe(els[m]);
-  }
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    var core = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, body);
+    core.addColorStop(0, dropped ? colour : '#ffffff'); core.addColorStop(dropped ? 0 : .35, colour); core.addColorStop(1, colour);
+    ctx.globalAlpha = Math.min(1, shine * 1.1); ctx.fillStyle = core;
+    ctx.beginPath(); ctx.arc(p.x, p.y, body, 0, 6.2832); ctx.fill();
+    if (picked && s.id === picked.id) {
+      ctx.globalAlpha = .85; ctx.strokeStyle = C.text; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(p.x, p.y, r + 5, 0, 6.2832); ctx.stroke();
+    }
+  });
 
-  // ---- count-up ----------------------------------------------------------
-  var counter = document.getElementById('count');
-  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var target = +counter.dataset.to;
-  if (reduce) {
-    counter.textContent = target;
-  } else {
-    var co = new IntersectionObserver(function (entries) {
-      if (!entries[0].isIntersecting) return;
-      co.disconnect();
-      var t0 = performance.now(), dur = 1400;
-      (function tick(now) {
-        var p = Math.min((now - t0) / dur, 1);
-        var e = 1 - Math.pow(1 - p, 3); // ease-out cubic, settles rather than stops
-        counter.textContent = Math.round(target * e);
-        if (p < 1) requestAnimationFrame(tick);
-      })(t0);
-    }, { threshold: 0.4 });
-    co.observe(counter);
-  }
+  /* labels, laid out by the app's own rules: nothing overlaps, and zooming in says more */
+  var head = $('.skyhead').getBoundingClientRect().height + 24;
+  labels = labelsFor(L, view, {
+    selected: picked ? picked.id : null,
+    reserved: [topic ? { x: 0, y: 0, w: w, h: 44 } : { x: 0, y: 0, w: w, h: head },
+               { x: w - 112, y: 0, w: 112, h: 56 }, { x: 0, y: h - 84, w: skyCap.hasAttribute('data-empty') ? 0 : w, h: 84 }],
+    overview: view.k < fit.k * OVERVIEW_ZOOM,
+  });
+  var labelsIn = intro === null ? 1 : Math.max(0, Math.min(1, (t - intro - 500) / 500));
+  ctx.textBaseline = 'middle'; ctx.lineJoin = 'round'; ctx.lineWidth = 4; ctx.strokeStyle = C.bg; ctx.textAlign = 'left';
+  (labelsIn === 1 ? labels.stars : []).forEach(function (l) {
+    var st = L.stars.filter(function (s) { return s.id === l.id; })[0];
+    var fade = topic && st && st.home !== topic ? .4 : 1;
+    ctx.font = '400 12px ' + C.font; ctx.globalAlpha = fade; ctx.strokeText(l.text, l.x, l.y);
+    ctx.fillStyle = l.selected ? C.star : C.text; ctx.globalAlpha = (l.selected ? 1 : .9) * fade; ctx.fillText(l.text, l.x, l.y);
+    ctx.font = '400 11px ' + C.font; ctx.fillStyle = C.dim;
+    l.meta.forEach(function (m, i) { var y = l.y + 14 * (i + 1); ctx.globalAlpha = fade; ctx.strokeText(m, l.x, y); ctx.fillText(m, l.x, y); });
+  });
+  ctx.textAlign = 'center'; ctx.font = '500 11px ' + C.font;
+  labels.branches.forEach(function (b) {
+    ctx.globalAlpha = dimmed(b.tag) * labelsIn; ctx.strokeText(b.text, b.x, b.y); ctx.fillStyle = C.dim; ctx.fillText(b.text, b.x, b.y);
+  });
+  ctx.textAlign = 'left';
+  labels.names.forEach(function (n) {
+    var focus = topic === n.tag, alpha = (topic && !focus ? .5 : 1) * labelsIn, name = n.text.toUpperCase();
+    ctx.globalAlpha = alpha;
+    ctx.font = '600 11px ' + C.font;
+    if ('letterSpacing' in ctx) ctx.letterSpacing = '1.4px';
+    var nameW = ctx.measureText(name).width;
+    if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+    ctx.font = '500 11px ' + C.font;
+    var countW = ctx.measureText(String(n.count)).width, width = chipWidth(n.tag, n.count);
+    var left = Math.round(n.x - width / 2), top = Math.round(n.y - CHIP_H / 2);
+    ctx.fillStyle = C.card; ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(left, top, width, CHIP_H, CHIP_H / 2); else ctx.rect(left, top, width, CHIP_H);
+    ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = focus ? C.text : C.line; ctx.stroke();
+    var inner = left + (width - (nameW + 7 + countW)) / 2;
+    ctx.font = '600 11px ' + C.font;
+    if ('letterSpacing' in ctx) ctx.letterSpacing = '1.4px';
+    ctx.fillStyle = C.star; ctx.fillText(name, inner, n.y + .5);
+    if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+    ctx.font = '500 11px ' + C.font; ctx.fillStyle = C.dim; ctx.fillText(String(n.count), inner + nameW + 7, n.y + .5);
+  });
+  ctx.lineWidth = 4; ctx.globalAlpha = 1;
+  if (intro !== null && !growing && t > intro + 1000) intro = null;
+  if (intro !== null) skyKick();
+}
 
-  // ---- nav hairline on scroll -------------------------------------------
-  var nav = document.getElementById('nav');
-  var onScroll = function () { nav.classList.toggle('stuck', window.scrollY > 12); };
-  addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
+/* --------------------------------------------------------- the caption and list */
+function stateLine(s) {
+  if (s.st === 'done') return 'finished ' + onDay(s.d);
+  if (s.st === 'snoozed') return 'snoozed. it comes back on its own';
+  if (s.st === 'dropped') return 'dropped ' + onDay(s.d);
+  if (s.up) return whenOf(s);
+  return 'added ' + onDay(s.d);
+}
+function pick(s) {
+  picked = s;
+  if (!s) { skyCap.setAttribute('data-empty', ''); skyCap.innerHTML = ''; skyDraw(performance.now()); return; }
+  skyCap.removeAttribute('data-empty');
+  skyCap.innerHTML = '<b>' + esc(s.t) + '</b><span><i style="--k:' + C[s.st] + '"></i>' + esc(stateLine(s)) + '</span>' +
+    (s.st === 'done' && s.fact ? '<em>' + esc(s.fact) + '</em>' : '');
+  skyDraw(performance.now());
+}
+function skyCount() {
+  var on = skyStars.filter(function (s) { return s.on; });
+  skyNEl.textContent = on.filter(function (s) { return s.st === 'done'; }).length + ' finished';
+  skyKey.innerHTML = ['done', 'pending', 'snoozed', 'dropped'].filter(function (k) {
+    return on.some(function (s) { return s.st === k; });
+  }).map(function (k) { return '<span style="--k:' + C[k] + '"><i></i>' + SKYLABEL[k] + '</span>'; }).join('');
+  skyList.innerHTML = on.map(function (s) { return '<li>' + esc(s.t) + ', ' + SKYLABEL[s.st] + '</li>'; }).join('');
+}
+/* Every item is a star from the moment it lands, the same as the app: it arrives blue,
+   and turns green when you finish it. Its slot is typed by kind, so it joins the group
+   it belongs to. */
+function slotKind(y) { return y === 'link' || y === 'idea' || y === 'goal' ? y : 'done'; }
+function skyAdd(it) {
+  if (it.star) return;
+  var kind = slotKind(it.y), s = skyStars.filter(function (x) { return !x.on && x.kind === kind; })[0];
+  if (!s) return;
+  s.on = true; s.mine = true; s.t = it.t; s.y = it.y; s.d = 0; s.st = 'pending'; s.m = 1; s.up = false;
+  s.lit = performance.now(); it.star = s;
+  skyCount(); skyKick();
+}
+function skySet(it, st) {
+  if (!it.star) skyAdd(it);
+  var s = it.star; if (!s) return;
+  s.st = st; s.lit = performance.now();
+  if (st === 'done') pendingStar = s;
+  if (picked === s) pick(s);
+  skyCount(); skyKick();
+}
+function skyRemove(it) {
+  var s = it.star; if (!s) return;
+  s.on = false; s.mine = false; it.star = null;
+  if (picked === s) pick(null);
+  if (pendingStar === s) pendingStar = null;
+  skyCount(); skyDraw(performance.now());
+}
+function skyIntroEnd() {
+  var mine = pendingStar;
+  if (mine) { pendingStar = null; mine.lit = performance.now(); pick(mine); skyKick(); return; }
+  if (!picked) pick(skyStars.filter(function (s) { return s.on && s.st === 'done' && s.m >= 3; })[1] || null);
+}
+
+/* ------------------------------------------------------------------ input */
+function openTopic(tag) {
+  topic = tag; skyBack.hidden = false; pick(null); sfx('open'); haptic(4);
+  flyTo(topicCam(tag));
+}
+skyC.addEventListener('click', function (e) {
+  var r = skyC.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, L = liveLayout();
+  var hit = labelAt(x, y) || hitTest(L, x, y);
+  if (!hit) return;
+  if (hit.kind === 'star') {
+    var s = skyStars.filter(function (q) { return q.id === hit.id; })[0];
+    if (s) { pick(s); sfx('tap'); haptic(4); }
+    return;
+  }
+  if (hit.tag !== topic) openTopic(hit.tag);
+});
+skyBack.addEventListener('click', function () {
+  topic = null; skyBack.hidden = true; sfx('shut');
+  flyTo({ x: fit.x, y: fit.y, k: fit.k });
+});
+skyC.addEventListener('pointermove', function (e) {
+  if (e.pointerType !== 'mouse') return;
+  var r = skyC.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  skyC.style.cursor = labelAt(x, y) || hitTest(liveLayout(), x, y) ? 'pointer' : 'default';
+});
+if (window.ResizeObserver) new ResizeObserver(skyFit).observe(skyEl); else addEventListener('resize', skyFit);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { skyFit(); });
+skyCount(); skyFit();
+var skyWatch = function (visible) {
+  skyIn = visible;
+  if (!visible) return;
+  skyKick();
+  if (!skySeen) {
+    skySeen = true;
+    if (!REDUCE) intro = performance.now();
+    skyKick();
+    /* the trees grow out once, then the newest clear (or a standout) is picked */
+    setTimeout(function () { intro = null; skyIntroEnd(); skyDraw(performance.now()); }, REDUCE ? 0 : 1300);
+    return;
+  }
+  if (pendingStar) skyIntroEnd();
+};
+if (io) {
+  new IntersectionObserver(function (es) { es.forEach(function (e) { skyWatch(e.isIntersecting); }); }, { threshold: .35 }).observe(skyEl);
+} else skyWatch(true);
+
+/* ================================================================== pre-warm
+   The highest-leverage thing on the page and it costs nothing: Render's free
+   instance sleeps after ~15 min and cold-starts in ~50s. Spend that on reading
+   time. If they beat the wake-up, say so rather than opening a tab that spins,
+   with a hard ceiling so it can never trap them. */
+var warm = false;
+var warming = fetch(APP + '/health', { mode: 'no-cors', cache: 'no-store' })
+  .then(function () { warm = true; }).catch(function () { warm = true; });
+$$('.app-link').forEach(function (el) {
+  el.href = APP;
+  el.addEventListener('click', function (e) {
+    sfx('tap');
+    if (warm) return;
+    e.preventDefault();
+    var was = el.textContent;
+    el.setAttribute('data-waking', ''); el.textContent = 'waking up…';
+    var go = function () { location.href = APP; };
+    warming.then(go); setTimeout(go, 6000);
+    setTimeout(function () { el.removeAttribute('data-waking'); el.textContent = was; }, 8000);
+  });
+});
+
+/* =================================================================== chrome */
+var nav = $('#nav');
+addEventListener('scroll', function () { nav.classList.toggle('stuck', scrollY > 10); }, { passive: true });
+nav.classList.toggle('stuck', scrollY > 10);
+autosize();
+
 })();
 </script>
 </body>
